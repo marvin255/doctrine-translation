@@ -8,8 +8,8 @@ on:
 
 jobs:
   
-  validate:
-    name: Test and validate (PHP ${{ matrix.php-versions }})
+  lint_and_test:
+    name: Lint and test (PHP ${{ matrix.php-versions }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
