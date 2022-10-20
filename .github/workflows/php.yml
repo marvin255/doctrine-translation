@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    name: Random string generator (PHP ${{ matrix.php-versions }})
+    name: Doctrine translations (PHP ${{ matrix.php-versions }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -41,5 +41,5 @@ jobs:
       run: composer run-script linter
     - name: Run test suite
       run: composer run-script test
-    - name: Run infection
-      run: composer run-script infection
+    #- name: Run infection
+    #  run: composer run-script infection
