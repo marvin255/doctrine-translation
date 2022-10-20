@@ -42,3 +42,45 @@ jobs:
       run: composer run-script test
     #- name: Run infection
     #  run: composer run-script infection
+
+  symfony_installation:
+    name: Test installation to symfony (PHP ${{ matrix.php-versions }}, Symfony ${{ matrix.symfony-versions }})
+    runs-on: ubuntu-latest
+    env:
+      DB_DATABASE: symfony
+      DB_USERNAME: root
+      DB_PASSWORD: password
+    strategy:
+      fail-fast: false
+      matrix:
+        php-versions: ['8.1']
+        symfony-versions: ['6.1']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup PHP, with composer and extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          extensions: mbstring, dom, fileinfo, mysql, curl
+      - name: Install Symfony
+        run: |
+          composer create-project symfony/skeleton:"${{ matrix.symfony-versions }}.*" example-app
+      - name: Branch used
+        id: extract_branch
+        run: |
+          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+            echo "::set-output name=branch::$(echo ${GITHUB_REF##*/})"
+          elif [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            echo "::set-output name=branch::$(echo $GITHUB_HEAD_REF)"
+          else
+            echo "::set-output name=branch::INVALID_EVENT_BRANCH_UNKNOWN"
+          fi
+      - name: Install module
+        run: |
+          cd example-app
+          composer req "marvin255/doctrine-translation:dev-${{ steps.extract_branch.outputs.branch }}" -W
+      - name: Check that module is auto enabled
+        run: |
+          cd example-app
+          cat config/bundles.php | grep "Marvin255DoctrineTranslationBundle"
