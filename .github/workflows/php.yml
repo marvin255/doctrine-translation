@@ -44,7 +44,7 @@ jobs:
     #  run: composer run-script infection
 
   symfony_installation:
-    name: Test installation to symfony (PHP ${{ matrix.php-versions }})
+    name: Test installation to symfony (PHP ${{ matrix.php-versions }}, Symfony ${{ matrix.symfony-versions }})
     runs-on: ubuntu-latest
     env:
       DB_DATABASE: symfony
@@ -82,4 +82,5 @@ jobs:
           composer req "marvin255/doctrine-translation:dev-${{ steps.extract_branch.outputs.branch }}" -W
           echo "APP_ENV=dev" > .env
           echo "APP_SECRET=test" >> .env
-          php bin/console 
+          php bin/console
+          cat config/bundles.php
