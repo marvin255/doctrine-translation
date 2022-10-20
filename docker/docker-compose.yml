@@ -1,0 +1,11 @@
+version: '3.7'
+
+services:
+    php:
+        container_name: doctrine-translation-php
+        image: doctrine-translation-php
+        restart: 'no'
+        build:
+            context: php
+        volumes:
+            - ./../:/var/app:cached
