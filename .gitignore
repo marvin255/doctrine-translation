@@ -11,3 +11,4 @@ test.php
 benchmark.php
 
 .~lock.*
+infection.log
