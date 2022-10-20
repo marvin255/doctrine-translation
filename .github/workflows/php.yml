@@ -40,8 +40,8 @@ jobs:
       run: composer run-script linter
     - name: Run test suite
       run: composer run-script test
-    #- name: Run infection
-    #  run: composer run-script infection
+    - name: Run infection
+      run: composer run-script infection
 
   symfony_installation:
     name: Test installation to symfony (PHP ${{ matrix.php-versions }}, Symfony ${{ matrix.symfony-versions }})
