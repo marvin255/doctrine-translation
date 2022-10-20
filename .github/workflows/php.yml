@@ -83,4 +83,4 @@ jobs:
       - name: Check that module is auto enabled
         run: |
           cd example-app
-          cat config/bundles.php | grep "Marvin255DoctrineTranslationBundle321"
+          cat config/bundles.php | grep "Marvin255DoctrineTranslationBundle"
