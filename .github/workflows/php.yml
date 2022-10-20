@@ -7,15 +7,14 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-
-    name: Doctrine translations (PHP ${{ matrix.php-versions }})
+  
+  validate:
+    name: Test and validate doctrine translations (PHP ${{ matrix.php-versions }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
       matrix:
         php-versions: ['8.1']
-
     steps:
     - uses: actions/checkout@v2
     - name: Install PHP
