@@ -5,8 +5,8 @@ composer.lock
 .phpunit.result.cache
 .php-cs-fixer.cache
 
-Tests/coverage
-Docker/.env
+tests/coverage
+docker/.env
 test.php
 benchmark.php
 
