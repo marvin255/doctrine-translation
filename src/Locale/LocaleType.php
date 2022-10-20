@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
+namespace Marvin255\DoctrineTranslation\Locale;
+
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\ConversionException;
 use Doctrine\DBAL\Types\StringType;
-use Marvin255\DoctrineTranslation\Locale\Locale;
-use Marvin255\DoctrineTranslation\Locale\LocaleValue;
+use Throwable;
 
 /**
  * Doctrine type field to save and load locale.
@@ -24,17 +25,17 @@ class LocaleType extends StringType
             return null;
         }
 
-        if (!is_string($value)) {
-            throw ConversionException::conversionFailed($value, self::LOCALE_TYPE);
+        if (\is_string($value)) {
+            try {
+                $locale = new LocaleValue($value);
+            } catch (Throwable $e) {
+                throw ConversionException::conversionFailedFormat($value, self::LOCALE_TYPE, 'en-US', $e);
+            }
+
+            return $locale;
         }
 
-        try {
-            $locale = new LocaleValue($value);
-        } catch (Throwable $e) {
-            throw ConversionException::conversionFailed($value, self::LOCALE_TYPE, $e);
-        }
-
-        return $locale;
+        throw ConversionException::conversionFailed($value, self::LOCALE_TYPE);
     }
 
     /**
