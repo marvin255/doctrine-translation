@@ -80,7 +80,6 @@ jobs:
         run: |
           cd example-app
           composer req "marvin255/doctrine-translation:dev-${{ steps.extract_branch.outputs.branch }}" -W
-          echo "APP_ENV=dev" > .env
-          echo "APP_SECRET=test" >> .env
-          php bin/console
-          cat config/bundles.php
+      - name: Check that module is auto enabled
+        run: |
+          cat config/bundles.php | grep "Marvin255DoctrineTranslationBundle"
