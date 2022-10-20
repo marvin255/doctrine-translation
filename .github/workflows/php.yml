@@ -1,4 +1,4 @@
-name: doctrine_translation
+name: Doctrine translation
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 jobs:
   
   validate:
-    name: Test and validate doctrine translations (PHP ${{ matrix.php-versions }})
+    name: Test and validate (PHP ${{ matrix.php-versions }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
