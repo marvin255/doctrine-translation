@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<psalm
+    cacheDirectory="/tmp"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config file:///var/www/vendor/vimeo/psalm/config.xsd"
+>
+    <projectFiles>
+        <directory name="./src" />
+        <ignoreFiles>
+        </ignoreFiles>
+    </projectFiles>
+
+    <issueHandlers>
+    </issueHandlers>
+
+    <plugins>
+    </plugins>
+</psalm>
