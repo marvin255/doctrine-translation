@@ -25,15 +25,13 @@ jobs:
       id: composer-cache-dir
       run: echo "::set-output name=dir::$(composer config cache-files-dir)"
     - name: Cache dependencies
-      id: composer-cache
       uses: actions/cache@v2
       with:
         path: ${{ steps.composer-cache-dir.outputs.dir }}
         key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
         restore-keys: ${{ runner.os }}-composer-
     - name: Install dependencies
-      if: steps.composer-cache.outputs.cache-hit != 'true'
-      run: composer install --prefer-dist --no-progress --no-suggest    
+      run: composer install --prefer-dist --no-progress --no-suggest
     - name: Run linters
       run: composer run-script linter
     - name: Run test suite
@@ -46,6 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SYMFONY_FOLDER: symfony_app
+      SYMFONY_FOLDER_TMP: symfony_app_tmp
     strategy:
       fail-fast: false
       matrix:
@@ -63,15 +62,18 @@ jobs:
         id: symfony-app-cache
         uses: actions/cache@v2
         with:
-          path: $SYMFONY_FOLDER
+          path: $SYMFONY_FOLDER_TMP
           key: ${{ runner.os }}-symfony-${{ matrix.symfony-versions }}-${{ matrix.php-versions }}
           restore-keys: ${{ runner.os }}-symfony-
       - name: Install Symfony app
         if: steps.symfony-app-cache.outputs.cache-hit != 'true'
         run: |
-          composer create-project symfony/skeleton:"${{ matrix.symfony-versions }}.*" $SYMFONY_FOLDER
-          cd $SYMFONY_FOLDER
+          composer create-project symfony/skeleton:"${{ matrix.symfony-versions }}.*" $SYMFONY_FOLDER_TMP
+          cd $SYMFONY_FOLDER_TMP
           composer require webapp
+      - name: Prepare fresh Symfony app
+        run: |
+          cp $SYMFONY_FOLDER_TMP $SYMFONY_FOLDER 
       - name: Branch used
         id: extract_branch
         run: |
