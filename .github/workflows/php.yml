@@ -21,21 +21,19 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php-versions }}
-    - name: Check PHP Version
-      run: php -v
-    - name: Validate composer.json and composer.lock
-      run: composer validate
-    - name: Cache Composer packages
+    - name: Get composer cache directory
+      id: composer-cache-dir
+      run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+    - name: Cache dependencies
       id: composer-cache
       uses: actions/cache@v2
       with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.json') }}
-        restore-keys: |
-          ${{ runner.os }}-php-
+        path: ${{ steps.composer-cache-dir.outputs.dir }}
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+        restore-keys: ${{ runner.os }}-composer-
     - name: Install dependencies
       if: steps.composer-cache.outputs.cache-hit != 'true'
-      run: composer install --prefer-dist --no-progress --no-suggest
+      run: composer install --prefer-dist --no-progress --no-suggest    
     - name: Run linters
       run: composer run-script linter
     - name: Run test suite
@@ -61,7 +59,15 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           extensions: mbstring, dom, fileinfo, mysql, curl
+      - name: Cache symfony app
+        id: symfony-app-cache
+        uses: actions/cache@v2
+        with:
+          path: $SYMFONY_FOLDER
+          key: ${{ runner.os }}-symfony-${{ matrix.symfony-versions }}-${{ matrix.php-versions }}
+          restore-keys: ${{ runner.os }}-symfony-
       - name: Install Symfony
+        if: steps.symfony-app-cache.outputs.cache-hit != 'true'
         run: |
           composer create-project symfony/skeleton:"${{ matrix.symfony-versions }}.*" $SYMFONY_FOLDER
           cd $SYMFONY_FOLDER
