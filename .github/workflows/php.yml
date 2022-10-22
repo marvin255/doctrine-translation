@@ -59,14 +59,14 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           extensions: mbstring, dom, fileinfo, mysql, curl
-      - name: Cache symfony app
+      - name: Cache Symfony app
         id: symfony-app-cache
         uses: actions/cache@v2
         with:
           path: $SYMFONY_FOLDER
           key: ${{ runner.os }}-symfony-${{ matrix.symfony-versions }}-${{ matrix.php-versions }}
           restore-keys: ${{ runner.os }}-symfony-
-      - name: Install Symfony
+      - name: Install Symfony app
         if: steps.symfony-app-cache.outputs.cache-hit != 'true'
         run: |
           composer create-project symfony/skeleton:"${{ matrix.symfony-versions }}.*" $SYMFONY_FOLDER
