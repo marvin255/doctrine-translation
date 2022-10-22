@@ -5,7 +5,7 @@
             "src"
         ],
         "excludes": [
-            "DependencyInjection"
+            "Marvin255DoctrineTranslationBundle.php"
         ]
     },
     "logs": {

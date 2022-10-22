@@ -21,21 +21,16 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php-versions }}
-    - name: Check PHP Version
-      run: php -v
-    - name: Validate composer.json and composer.lock
-      run: composer validate
-    - name: Cache Composer packages
-      id: composer-cache
+    - name: Get composer cache directory
+      id: composer-cache-dir
+      run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+    - name: Cache dependencies
       uses: actions/cache@v2
       with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.json') }}
-        restore-keys: |
-          ${{ runner.os }}-php-
+        path: ${{ steps.composer-cache-dir.outputs.dir }}
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
     - name: Install dependencies
-      if: steps.composer-cache.outputs.cache-hit != 'true'
-      run: composer install --prefer-dist --no-progress --no-suggest
+      run: composer install --prefer-dist --no-progress
     - name: Run linters
       run: composer run-script linter
     - name: Run test suite
@@ -44,12 +39,10 @@ jobs:
       run: composer run-script infection
 
   symfony_installation:
-    name: Test installation to symfony (PHP ${{ matrix.php-versions }}, Symfony ${{ matrix.symfony-versions }})
+    name: Test installation to Symfony (PHP ${{ matrix.php-versions }}, Symfony ${{ matrix.symfony-versions }})
     runs-on: ubuntu-latest
     env:
-      DB_DATABASE: symfony
-      DB_USERNAME: root
-      DB_PASSWORD: password
+      SYMFONY_FOLDER: symfony_app
     strategy:
       fail-fast: false
       matrix:
@@ -58,15 +51,27 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Setup PHP, with composer and extensions
+      - name: Setup PHP with composer and extensions
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-versions }}
           extensions: mbstring, dom, fileinfo, mysql, curl
-      - name: Install Symfony
+      - name: Cache Symfony app
+        id: symfony-app-cache
+        uses: actions/cache@v2
+        with:
+          path: symfony_app_tmp
+          key: ${{ runner.os }}-symfony-${{ matrix.symfony-versions }}-${{ matrix.php-versions }}
+      - name: Install Symfony app
+        if: steps.symfony-app-cache.outputs.cache-hit != 'true'
         run: |
-          composer create-project symfony/skeleton:"${{ matrix.symfony-versions }}.*" example-app
-      - name: Branch used
+          composer create-project symfony/skeleton:"${{ matrix.symfony-versions }}.*" symfony_app_tmp
+          cd symfony_app_tmp
+          composer require webapp
+      - name: Prepare fresh Symfony app
+        run: |
+          cp -r symfony_app_tmp $SYMFONY_FOLDER 
+      - name: Select branch to install module
         id: extract_branch
         run: |
           if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
@@ -78,9 +83,11 @@ jobs:
           fi
       - name: Install module
         run: |
-          cd example-app
+          cd $SYMFONY_FOLDER
           composer req "marvin255/doctrine-translation-bundle:dev-${{ steps.extract_branch.outputs.branch }}" -W
       - name: Check that module is auto enabled
         run: |
-          cd example-app
-          cat config/bundles.php | grep "Marvin255DoctrineTranslationBundle"
+          cat $SYMFONY_FOLDER/config/bundles.php | grep "Marvin255DoctrineTranslationBundle"
+      - name: Check that locale type is registered
+        run: |
+          $SYMFONY_FOLDER/bin/console debug:config doctrine dbal.types | grep "marvin255_locale"
