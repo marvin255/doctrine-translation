@@ -47,9 +47,7 @@ jobs:
     name: Test installation to symfony (PHP ${{ matrix.php-versions }}, Symfony ${{ matrix.symfony-versions }})
     runs-on: ubuntu-latest
     env:
-      DB_DATABASE: symfony
-      DB_USERNAME: root
-      DB_PASSWORD: password
+      SYMFONY_FOLDER: symfony_app
     strategy:
       fail-fast: false
       matrix:
@@ -65,7 +63,9 @@ jobs:
           extensions: mbstring, dom, fileinfo, mysql, curl
       - name: Install Symfony
         run: |
-          composer create-project symfony/skeleton:"${{ matrix.symfony-versions }}.*" example-app
+          composer create-project symfony/skeleton:"${{ matrix.symfony-versions }}.*" $SYMFONY_FOLDER
+          cd $SYMFONY_FOLDER
+          composer require webapp
       - name: Branch used
         id: extract_branch
         run: |
@@ -78,11 +78,11 @@ jobs:
           fi
       - name: Install module
         run: |
-          cd example-app
+          cd $SYMFONY_FOLDER
           composer req "marvin255/doctrine-translation-bundle:dev-${{ steps.extract_branch.outputs.branch }}" -W
       - name: Check that module is auto enabled
         run: |
-          cat example-app/config/bundles.php | grep "Marvin255DoctrineTranslationBundle"
+          cat $SYMFONY_FOLDER/config/bundles.php | grep "Marvin255DoctrineTranslationBundle"
       - name: Check that locale type is registered
         run: |
-          example-app/bin/console debug:config doctrine dbal.types | grep "marvin255_locale"
+          $SYMFONY_FOLDER/bin/console debug:config doctrine dbal.types | grep "marvin255_locale"
