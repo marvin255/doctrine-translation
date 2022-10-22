@@ -74,7 +74,7 @@ jobs:
       - name: Prepare fresh Symfony app
         run: |
           cp -r $SYMFONY_FOLDER_TMP $SYMFONY_FOLDER 
-      - name: Branch used
+      - name: Select branch to install module
         id: extract_branch
         run: |
           if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
