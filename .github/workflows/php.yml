@@ -85,4 +85,4 @@ jobs:
           cat example-app/config/bundles.php | grep "Marvin255DoctrineTranslationBundle"
       - name: Check that locale type is registered
         run: |
-          bin/console debug:config doctrine dbal.types | grep "marvin255_locale"
+          example-app/bin/console debug:config doctrine dbal.types | grep "marvin255_locale"
