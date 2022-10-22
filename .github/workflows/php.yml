@@ -73,7 +73,7 @@ jobs:
           composer require webapp
       - name: Prepare fresh Symfony app
         run: |
-          cp $SYMFONY_FOLDER_TMP $SYMFONY_FOLDER 
+          cp -r $SYMFONY_FOLDER_TMP $SYMFONY_FOLDER 
       - name: Branch used
         id: extract_branch
         run: |
