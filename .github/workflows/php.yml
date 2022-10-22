@@ -82,5 +82,7 @@ jobs:
           composer req "marvin255/doctrine-translation-bundle:dev-${{ steps.extract_branch.outputs.branch }}" -W
       - name: Check that module is auto enabled
         run: |
-          cd example-app
-          cat config/bundles.php | grep "Marvin255DoctrineTranslationBundle"
+          cat example-app/config/bundles.php | grep "Marvin255DoctrineTranslationBundle"
+      - name: Check that locale type is registered
+        run: |
+          bin/console debug:config doctrine dbal.types | grep "marvin255_locale"
