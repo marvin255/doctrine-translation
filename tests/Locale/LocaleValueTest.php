@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Marvin255\DoctrineTranslation\Tests\Locale;
+namespace Marvin255\DoctrineTranslationBundle\Tests\Locale;
 
 use InvalidArgumentException;
-use Marvin255\DoctrineTranslation\Locale\LocaleValue;
-use Marvin255\DoctrineTranslation\Tests\BaseCase;
+use Marvin255\DoctrineTranslationBundle\Locale\LocaleValue;
+use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
 
 /**
  * @internal

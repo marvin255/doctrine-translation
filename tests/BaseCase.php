@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Marvin255\DoctrineTranslation\Tests;
+namespace Marvin255\DoctrineTranslationBundle\Tests;
 
 use PHPUnit\Framework\TestCase;
 

@@ -1,5 +1,5 @@
 {
-    "name": "marvin255/doctrine-translation",
+    "name": "marvin255/doctrine-translation-bundle",
     "type": "symfony-bundle",
     "description": "Doctrine translations for Symfony",
     "keywords": ["php", "doctrine", "symfony", "translation"],
@@ -19,12 +19,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Marvin255\\DoctrineTranslation\\": "src/"
+            "Marvin255\\DoctrineTranslationBundle\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Marvin255\\DoctrineTranslation\\Tests\\": "tests/"
+            "Marvin255\\DoctrineTranslationBundle\\Tests\\": "tests/"
         }
     },
     "scripts": {

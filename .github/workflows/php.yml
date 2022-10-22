@@ -79,7 +79,7 @@ jobs:
       - name: Install module
         run: |
           cd example-app
-          composer req "marvin255/doctrine-translation:dev-${{ steps.extract_branch.outputs.branch }}" -W
+          composer req "marvin255/doctrine-translation-bundle:dev-${{ steps.extract_branch.outputs.branch }}" -W
       - name: Check that module is auto enabled
         run: |
           cd example-app

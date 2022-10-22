@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Marvin255\DoctrineTranslation\Tests\Locale;
+namespace Marvin255\DoctrineTranslationBundle\Tests\Locale;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\ConversionException;
-use Marvin255\DoctrineTranslation\Locale\Locale;
-use Marvin255\DoctrineTranslation\Locale\LocaleType;
-use Marvin255\DoctrineTranslation\Locale\LocaleValue;
-use Marvin255\DoctrineTranslation\Tests\BaseCase;
+use Marvin255\DoctrineTranslationBundle\Locale\Locale;
+use Marvin255\DoctrineTranslationBundle\Locale\LocaleType;
+use Marvin255\DoctrineTranslationBundle\Locale\LocaleValue;
+use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Throwable;
 

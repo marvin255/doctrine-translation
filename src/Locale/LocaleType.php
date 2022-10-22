@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Marvin255\DoctrineTranslation\Locale;
+namespace Marvin255\DoctrineTranslationBundle\Locale;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\ConversionException;

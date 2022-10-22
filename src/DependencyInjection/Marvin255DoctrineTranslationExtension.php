@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Marvin255\DoctrineTranslation\DependencyInjection;
+namespace Marvin255\DoctrineTranslationBundle\DependencyInjection;
 
-use Marvin255\DoctrineTranslation\Locale\LocaleType;
+use Marvin255\DoctrineTranslationBundle\Locale\LocaleType;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
