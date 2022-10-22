@@ -40,7 +40,7 @@ jobs:
       run: composer run-script infection
 
   symfony_installation:
-    name: Test installation to symfony (PHP ${{ matrix.php-versions }}, Symfony ${{ matrix.symfony-versions }})
+    name: Test installation to Symfony (PHP ${{ matrix.php-versions }}, Symfony ${{ matrix.symfony-versions }})
     runs-on: ubuntu-latest
     env:
       SYMFONY_FOLDER: symfony_app
@@ -48,7 +48,7 @@ jobs:
       fail-fast: false
       matrix:
         php-versions: ['8.1']
-        symfony-versions: ['6.0', '6.1']
+        symfony-versions: ['6.1']
     steps:
       - name: Checkout
         uses: actions/checkout@v2
