@@ -32,11 +32,6 @@ final class TranslationMetaDataEventSubscriber implements EventSubscriberInterfa
     public function loadClassMetadata(LoadClassMetadataEventArgs $args): void
     {
         $metadata = $args->getClassMetadata();
-
-        if (!($metadata instanceof ClassMetadata)) {
-            return;
-        }
-
         $this->fixAssociations($metadata);
     }
 
@@ -47,12 +42,7 @@ final class TranslationMetaDataEventSubscriber implements EventSubscriberInterfa
     {
         $associations = $metadata->getAssociationMappings();
         foreach ($associations as $association) {
-            if (
-                isset($association['targetEntity'], $association['sourceEntity'], $association['fieldName'])
-                && \is_string($association['sourceEntity'])
-                && \is_string($association['fieldName'])
-                && $association['targetEntity'] === Translatable::class
-            ) {
+            if ($association['targetEntity'] === Translatable::class) {
                 $targetEntity = $this->createTranslatableClassName($association['sourceEntity']);
                 // it's a dirty hack, but there is no another way to update association
                 $metadata->associationMappings[$association['fieldName']]['targetEntity'] = $targetEntity;
@@ -62,6 +52,8 @@ final class TranslationMetaDataEventSubscriber implements EventSubscriberInterfa
 
     /**
      * Creates class name for related translatable entity.
+     *
+     * @psalm-return class-string
      */
     private function createTranslatableClassName(string $sourceClassName): string
     {

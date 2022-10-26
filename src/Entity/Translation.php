@@ -45,7 +45,7 @@ abstract class Translation
         return $this;
     }
 
-    public function getTranslatable(): ?Translatable
+    /*public function getTranslatable(): ?Translatable
     {
         return $this->translatable;
     }
@@ -55,5 +55,5 @@ abstract class Translation
         $this->translatable = $translatable;
 
         return $this;
-    }
+    }*/
 }
