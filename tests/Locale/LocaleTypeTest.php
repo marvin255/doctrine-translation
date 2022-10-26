@@ -8,7 +8,6 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\ConversionException;
 use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 use Marvin255\DoctrineTranslationBundle\Locale\LocaleType;
-use Marvin255\DoctrineTranslationBundle\Locale\LocaleValue;
 use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Throwable;
@@ -86,7 +85,7 @@ class LocaleTypeTest extends BaseCase
     {
         return [
             'locale object' => [
-                new LocaleValue('en-US'),
+                new Locale('en-US'),
                 'en-US',
             ],
             'null locale' => [

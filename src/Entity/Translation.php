@@ -14,6 +14,8 @@ use Marvin255\DoctrineTranslationBundle\Locale\LocaleType;
 
 /**
  * Mapped superclass for doctrine translation entity.
+ *
+ * @psalm-template T of Translatable
  */
 #[MappedSuperclass]
 abstract class Translation
@@ -24,20 +26,32 @@ abstract class Translation
     #[Column(name: 'locale', type: LocaleType::LOCALE_TYPE, nullable: false)]
     protected ?Locale $locale = null;
 
+    /**
+     * @psalm-var T|null
+     */
     #[ManyToOne(inversedBy: 'translations')]
     #[JoinColumn(name: 'translatable_id', nullable: false)]
     protected ?Translatable $translatable = null;
 
+    /**
+     * Returns primary key for this translation.
+     */
     public function getId(): ?int
     {
         return $this->id;
     }
 
+    /**
+     * Returns locale related to this translation.
+     */
     public function getLocale(): ?Locale
     {
         return $this->locale;
     }
 
+    /**
+     * Sets locale for this translation.
+     */
     public function setLocale(Locale $locale): self
     {
         $this->locale = $locale;
@@ -45,14 +59,22 @@ abstract class Translation
         return $this;
     }
 
-    /*public function getTranslatable(): ?Translatable
+    /**
+     * Returns parent object for this translation.
+     *
+     * @psalm-return T|null
+     */
+    public function getTranslatable(): ?Translatable
     {
         return $this->translatable;
     }
 
-    public function setTranslatable(Translatable $translatable): self
+    /*
+     * @qqqqq-psalm-param T $translatable
+     */
+    /*public function setTranslatable(int): self
     {
-        $this->translatable = $translatable;
+        // $this->translatable = $qwe;
 
         return $this;
     }*/
