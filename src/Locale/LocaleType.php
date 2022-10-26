@@ -27,7 +27,7 @@ class LocaleType extends StringType
 
         if (\is_string($value)) {
             try {
-                $locale = new LocaleValue($value);
+                $locale = new Locale($value);
             } catch (Throwable $e) {
                 throw ConversionException::conversionFailedFormat($value, self::LOCALE_TYPE, 'en-US', $e);
             }

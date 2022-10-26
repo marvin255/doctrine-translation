@@ -4,29 +4,45 @@ declare(strict_types=1);
 
 namespace Marvin255\DoctrineTranslationBundle\Locale;
 
+use InvalidArgumentException;
+
 /**
- * Interface for object that represents language locale.
+ * Simple object that provides locale value for doctrine.
  */
-interface Locale
+final class Locale
 {
-    /**
-     * Returns primary language from locale. E.g. returns en from en-US.
-     *
-     * @return string
-     */
-    public function getLanguage(): string;
+    private readonly string $language;
 
-    /**
-     * Returns region from locale or empty string if there is no region. E.g. returns US from en-US.
-     *
-     * @return string
-     */
-    public function getRegion(): string;
+    private readonly string $region;
 
-    /**
-     * Returns full locale name including language and region.
-     *
-     * @return string
-     */
-    public function getFull(): string;
+    private readonly string $full;
+
+    public function __construct(string $locale)
+    {
+        $trimmedLocale = trim($locale);
+        if ($trimmedLocale === '') {
+            throw new InvalidArgumentException("Locale can't be an empty string");
+        }
+
+        $arLocale = explode('-', $trimmedLocale);
+
+        $this->language = strtolower(trim($arLocale[0] ?? ''));
+        $this->region = strtoupper(trim($arLocale[1] ?? ''));
+        $this->full = $this->language . ($this->region === '' ? '' : "-{$this->region}");
+    }
+
+    public function getLanguage(): string
+    {
+        return $this->language;
+    }
+
+    public function getRegion(): string
+    {
+        return $this->region;
+    }
+
+    public function getFull(): string
+    {
+        return $this->full;
+    }
 }

@@ -5,24 +5,24 @@ declare(strict_types=1);
 namespace Marvin255\DoctrineTranslationBundle\Tests\Locale;
 
 use InvalidArgumentException;
-use Marvin255\DoctrineTranslationBundle\Locale\LocaleValue;
+use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
 
 /**
  * @internal
  */
-class LocaleValueTest extends BaseCase
+class LocaleTest extends BaseCase
 {
     public function testEmptyConstructorValue(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        new LocaleValue('');
+        new Locale('');
     }
 
     public function testSpacesOnlyConstructorValue(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        new LocaleValue('       ');
+        new Locale('       ');
     }
 
     /**
@@ -30,8 +30,8 @@ class LocaleValueTest extends BaseCase
      */
     public function testGetLanguage(string $locale, string $reference): void
     {
-        $localeValue = new LocaleValue($locale);
-        $language = $localeValue->getLanguage();
+        $locale = new Locale($locale);
+        $language = $locale->getLanguage();
 
         $this->assertSame($reference, $language);
     }
@@ -67,8 +67,8 @@ class LocaleValueTest extends BaseCase
      */
     public function testGetRegion(string $locale, string $reference): void
     {
-        $localeValue = new LocaleValue($locale);
-        $region = $localeValue->getRegion();
+        $locale = new Locale($locale);
+        $region = $locale->getRegion();
 
         $this->assertSame($reference, $region);
     }
@@ -104,8 +104,8 @@ class LocaleValueTest extends BaseCase
      */
     public function testGetFull(string $locale, string $reference): void
     {
-        $localeValue = new LocaleValue($locale);
-        $full = $localeValue->getFull();
+        $locale = new Locale($locale);
+        $full = $locale->getFull();
 
         $this->assertSame($reference, $full);
     }

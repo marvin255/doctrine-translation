@@ -17,9 +17,9 @@ class Marvin255DoctrineTranslationBundle extends AbstractBundle
     /**
      * {@inheritdoc}
      */
-    public function getPath(): string
+    public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
-        return \dirname(__DIR__);
+        $container->import('../config/services.yaml');
     }
 
     /**
@@ -43,5 +43,13 @@ class Marvin255DoctrineTranslationBundle extends AbstractBundle
                 ],
             ]
         );
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPath(): string
+    {
+        return \dirname(__DIR__);
     }
 }
