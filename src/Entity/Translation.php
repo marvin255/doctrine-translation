@@ -15,7 +15,7 @@ use Marvin255\DoctrineTranslationBundle\Locale\LocaleType;
 /**
  * Mapped superclass for doctrine translation entity.
  *
- * @psalm-template T of Translatable
+ * @psalm-template P of Translatable
  */
 #[MappedSuperclass]
 abstract class Translation
@@ -27,7 +27,7 @@ abstract class Translation
     protected ?Locale $locale = null;
 
     /**
-     * @psalm-var T|null
+     * @psalm-var P|null
      */
     #[ManyToOne(inversedBy: 'translations')]
     #[JoinColumn(name: 'translatable_id', nullable: false)]
@@ -62,20 +62,22 @@ abstract class Translation
     /**
      * Returns parent object for this translation.
      *
-     * @psalm-return T|null
+     * @psalm-return P|null
      */
     public function getTranslatable(): ?Translatable
     {
         return $this->translatable;
     }
 
-    /*
-     * @qqqqq-psalm-param T $translatable
+    /**
+     * Returns parent object related to this translation.
+     *
+     * @psalm-param P $translatable
      */
-    /*public function setTranslatable(int): self
+    public function setTranslatable(Translatable $translatable): self
     {
-        // $this->translatable = $qwe;
+        $this->translatable = $translatable;
 
         return $this;
-    }*/
+    }
 }
