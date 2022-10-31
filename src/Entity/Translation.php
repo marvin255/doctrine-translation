@@ -21,17 +21,21 @@ use Marvin255\DoctrineTranslationBundle\Locale\LocaleType;
 #[MappedSuperclass]
 abstract class Translation
 {
+    public const LOCALE_COLUMN_NAME = 'locale';
+    public const TRANSLATABLE_COLUMN_NAME = 'translatable_id';
+    public const TRANSLATION_CLASS_SUFFIX = 'Translation';
+
     #[Id, GeneratedValue, Column(name: 'id', type: 'integer')]
     protected ?int $id = null;
 
-    #[Column(name: 'locale', type: LocaleType::LOCALE_TYPE, nullable: false)]
+    #[Column(name: self::LOCALE_COLUMN_NAME, type: LocaleType::LOCALE_TYPE, nullable: false, length: 15)]
     protected ?Locale $locale = null;
 
     /**
      * @psalm-var P|null
      */
     #[ManyToOne(inversedBy: 'translations')]
-    #[JoinColumn(name: 'translatable_id', nullable: false)]
+    #[JoinColumn(name: self::TRANSLATABLE_COLUMN_NAME, nullable: false)]
     protected ?Translatable $translatable = null;
 
     /**

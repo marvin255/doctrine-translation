@@ -34,10 +34,31 @@ final class TranslationMetaDataEventSubscriber implements EventSubscriberInterfa
     {
         $metadata = $args->getClassMetadata();
         $this->fixAssociations($metadata);
+        $this->addTranslationIndex($metadata);
     }
 
     /**
-     * Fix all translations associations which have Translatable as target.
+     * Adds new unique index on translation id and locale.
+     */
+    private function addTranslationIndex(ClassMetadata $metadata): void
+    {
+        if (!is_subclass_of($metadata->getName(), Translation::class)) {
+            return;
+        }
+
+        $indexName = strtolower(str_replace('\\', '_', $metadata->getName())) . '_translation_idx';
+        if (!isset($metadata->table['uniqueConstraints'][$indexName])) {
+            $metadata->table['uniqueConstraints'][$indexName] = [
+                'columns' => [
+                    Translation::LOCALE_COLUMN_NAME,
+                    Translation::TRANSLATABLE_COLUMN_NAME,
+                ],
+            ];
+        }
+    }
+
+    /**
+     * Fixes all translations associations which have Translatable as target.
      */
     private function fixAssociations(ClassMetadata $metadata): void
     {
@@ -61,8 +82,9 @@ final class TranslationMetaDataEventSubscriber implements EventSubscriberInterfa
      */
     private function createTranslatableClassName(string $sourceClassName): string
     {
-        if (!preg_match('/(.+)Translation$/', $sourceClassName, $matches)) {
-            throw new MappingException("Entity '{$sourceClassName}' name must ends with 'Translation' suffix");
+        $suffix = Translation::TRANSLATION_CLASS_SUFFIX;
+        if (!preg_match("/(.+){$suffix}$/", $sourceClassName, $matches)) {
+            throw new MappingException("Entity '{$sourceClassName}' name must ends with '{$suffix}' suffix");
         }
 
         $className = $matches[1];

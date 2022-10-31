@@ -61,7 +61,7 @@ final class TranslatableMetaDataEventSubscriber implements EventSubscriberInterf
      */
     private function createTranslationClassName(string $sourceClassName): string
     {
-        $className = "{$sourceClassName}Translation";
+        $className = $sourceClassName . Translation::TRANSLATION_CLASS_SUFFIX;
 
         if (!class_exists($className)) {
             throw new MappingException("Can't find '{$className}' for translatable '{$sourceClassName}'");
