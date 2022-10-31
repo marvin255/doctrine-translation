@@ -135,4 +135,33 @@ class LocaleTest extends BaseCase
             ],
         ];
     }
+
+    /**
+     * @dataProvider provideEquals
+     */
+    public function testEquals(string $localeOne, string $localeTwo, bool $reference): void
+    {
+        $localeObjectOne = new Locale($localeOne);
+        $localeObjectTwo = new Locale($localeTwo);
+
+        $result = $localeObjectOne->equals($localeObjectTwo);
+
+        $this->assertSame($reference, $result);
+    }
+
+    public function provideEquals(): array
+    {
+        return [
+            'equal' => [
+                'en-US',
+                'en-US',
+                true,
+            ],
+            'not equal' => [
+                'en-US',
+                'en-GB',
+                false,
+            ],
+        ];
+    }
 }

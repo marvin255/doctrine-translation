@@ -9,6 +9,7 @@ use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
+use Marvin255\DoctrineTranslationBundle\Entity\Translation;
 use Marvin255\DoctrineTranslationBundle\Exception\MappingException;
 
 /**
@@ -42,7 +43,10 @@ final class TranslationMetaDataEventSubscriber implements EventSubscriberInterfa
     {
         $associations = $metadata->getAssociationMappings();
         foreach ($associations as $association) {
-            if ($association['targetEntity'] === Translatable::class) {
+            if (
+                is_subclass_of($association['sourceEntity'], Translation::class)
+                && $association['targetEntity'] === Translatable::class
+            ) {
                 $targetEntity = $this->createTranslatableClassName($association['sourceEntity']);
                 // it's a dirty hack, but there is no another way to update association
                 $metadata->associationMappings[$association['fieldName']]['targetEntity'] = $targetEntity;
@@ -68,8 +72,8 @@ final class TranslationMetaDataEventSubscriber implements EventSubscriberInterfa
         }
 
         if (!is_subclass_of($className, Translatable::class)) {
-            $interface = Translatable::class;
-            throw new MappingException("'{$className}' for translation '{$sourceClassName}' must implements '{$interface}'");
+            $requiredType = Translatable::class;
+            throw new MappingException("'{$className}' for translation '{$sourceClassName}' must extends '{$requiredType}'");
         }
 
         return $className;

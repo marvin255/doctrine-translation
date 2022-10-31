@@ -45,4 +45,9 @@ final class Locale
     {
         return $this->full;
     }
+
+    public function equals(Locale $locale): bool
+    {
+        return $this->full === $locale->getFull();
+    }
 }
