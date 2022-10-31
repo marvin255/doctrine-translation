@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Marvin255\DoctrineTranslationBundle\Entity;
 
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\GeneratedValue;
 use Doctrine\ORM\Mapping\Id;
 use Doctrine\ORM\Mapping\JoinColumn;
 use Doctrine\ORM\Mapping\ManyToOne;
@@ -20,7 +21,7 @@ use Marvin255\DoctrineTranslationBundle\Locale\LocaleType;
 #[MappedSuperclass]
 abstract class Translation
 {
-    #[Id, Column(name: 'id', type: 'integer')]
+    #[Id, GeneratedValue, Column(name: 'id', type: 'integer')]
     protected ?int $id = null;
 
     #[Column(name: 'locale', type: LocaleType::LOCALE_TYPE, nullable: false)]
