@@ -13,6 +13,12 @@ use PHPUnit\Framework\MockObject\MockObject;
  */
 abstract class EventSubscriberCase extends BaseCase
 {
+    protected function assertAssociationTarget(string $expected, LoadClassMetadataEventArgs $args, string $associationName): void
+    {
+        $associations = $args->getClassMetadata()->associationMappings;
+        $this->assertSame($expected, $associations[$associationName]['targetEntity'] ?? '');
+    }
+
     /**
      * @psalm-suppress MixedPropertyTypeCoercion
      */

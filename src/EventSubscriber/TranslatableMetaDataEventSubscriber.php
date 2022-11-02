@@ -42,14 +42,14 @@ final class TranslatableMetaDataEventSubscriber implements EventSubscriberInterf
     private function fixAssociations(ClassMetadata $metadata): void
     {
         $associations = $metadata->getAssociationMappings();
-        foreach ($associations as $association) {
+        foreach ($associations as $key => $association) {
             if (
                 is_subclass_of($association['sourceEntity'], Translatable::class)
                 && $association['targetEntity'] === Translation::class
             ) {
                 $targetEntity = $this->createTranslationClassName($association['sourceEntity']);
                 // it's a dirty hack, but there is no another way to update association
-                $metadata->associationMappings[$association['fieldName']]['targetEntity'] = $targetEntity;
+                $metadata->associationMappings[$key]['targetEntity'] = $targetEntity;
             }
         }
     }

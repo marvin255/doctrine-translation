@@ -101,10 +101,9 @@ class TranslationMetaDataEventSubscriberTest extends EventSubscriberCase
         }
 
         $subscriber->loadClassMetadata($args);
-        $associations = $args->getClassMetadata()->associationMappings;
 
         if (!($result instanceof Throwable)) {
-            $this->assertSame($result, $associations[$associationName]['targetEntity'] ?? '');
+            $this->assertAssociationTarget($result, $args, $associationName);
         }
     }
 
