@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Marvin255\DoctrineTranslationBundle\Tests\Locale;
 
-use InvalidArgumentException;
 use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
 
@@ -15,13 +14,13 @@ class LocaleTest extends BaseCase
 {
     public function testEmptyConstructorValue(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         new Locale('');
     }
 
     public function testSpacesOnlyConstructorValue(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         new Locale('       ');
     }
 

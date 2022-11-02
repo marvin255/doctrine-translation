@@ -10,7 +10,6 @@ use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 use Marvin255\DoctrineTranslationBundle\Locale\LocaleType;
 use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
 use PHPUnit\Framework\MockObject\MockObject;
-use Throwable;
 
 /**
  * @internal
@@ -27,7 +26,7 @@ class LocaleTypeTest extends BaseCase
 
         $type = $this->createLocaleType();
 
-        if ($reference instanceof Throwable) {
+        if ($reference instanceof \Throwable) {
             $this->expectException(\get_class($reference));
             $type->convertToPHPValue($value, $platformMock);
         } elseif ($reference === null) {
@@ -72,7 +71,7 @@ class LocaleTypeTest extends BaseCase
 
         $type = $this->createLocaleType();
 
-        if ($reference instanceof Throwable) {
+        if ($reference instanceof \Throwable) {
             $this->expectException(\get_class($reference));
             $type->convertToDatabaseValue($value, $platformMock);
         } else {

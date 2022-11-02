@@ -15,7 +15,6 @@ use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockNoPairTranslation;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslatableItem;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslatableItemTranslation;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslationWrong;
-use Throwable;
 
 /**
  * @internal
@@ -79,7 +78,7 @@ class TranslationMetaDataEventSubscriberTest extends EventSubscriberCase
     /**
      * @dataProvider provideLoadClassMetadataFixAssociations
      */
-    public function testLoadClassMetadataFixAssociations(string $source, string $target, string|Throwable $result): void
+    public function testLoadClassMetadataFixAssociations(string $source, string $target, string|\Throwable $result): void
     {
         $associationName = 'test';
         $args = $this->createEventArgsMock(
@@ -95,14 +94,14 @@ class TranslationMetaDataEventSubscriberTest extends EventSubscriberCase
 
         $subscriber = new TranslationMetaDataEventSubscriber();
 
-        if ($result instanceof Throwable) {
+        if ($result instanceof \Throwable) {
             $this->expectException(\get_class($result));
             $this->expectExceptionMessage($result->getMessage());
         }
 
         $subscriber->loadClassMetadata($args);
 
-        if (!($result instanceof Throwable)) {
+        if (!($result instanceof \Throwable)) {
             $this->assertAssociationTarget($result, $args, $associationName);
         }
     }

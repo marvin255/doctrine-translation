@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Marvin255\DoctrineTranslationBundle\Locale;
 
-use InvalidArgumentException;
-
 /**
  * Simple object that provides locale value for doctrine.
  */
@@ -21,7 +19,7 @@ final class Locale
     {
         $trimmedLocale = trim($locale);
         if ($trimmedLocale === '') {
-            throw new InvalidArgumentException("Locale can't be an empty string");
+            throw new \InvalidArgumentException("Locale can't be an empty string");
         }
 
         $arLocale = explode('-', $trimmedLocale);

@@ -7,7 +7,6 @@ namespace Marvin255\DoctrineTranslationBundle\Locale;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\ConversionException;
 use Doctrine\DBAL\Types\StringType;
-use Throwable;
 
 /**
  * Doctrine type field to save and load locale.
@@ -30,7 +29,7 @@ class LocaleType extends StringType
         if (\is_string($value)) {
             try {
                 $locale = new Locale($value);
-            } catch (Throwable $e) {
+            } catch (\Throwable $e) {
                 throw ConversionException::conversionFailedFormat($value, self::LOCALE_TYPE, 'en-US', $e);
             }
 
