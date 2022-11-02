@@ -4,26 +4,23 @@ declare(strict_types=1);
 
 namespace Marvin255\DoctrineTranslationBundle\Tests\EventSubscriber;
 
-use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Events;
-use Doctrine\ORM\Mapping\ClassMetadata;
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
 use Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslationMetaDataEventSubscriber;
 use Marvin255\DoctrineTranslationBundle\Exception\MappingException;
-use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
+use Marvin255\DoctrineTranslationBundle\Tests\EventSubscriberCase;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockNonTranslatableTranslation;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockNoPairTranslation;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslatableItem;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslatableItemTranslation;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslationWrong;
-use PHPUnit\Framework\MockObject\MockObject;
 use Throwable;
 
 /**
  * @internal
  */
-class TranslationMetaDataEventSubscriberTest extends BaseCase
+class TranslationMetaDataEventSubscriberTest extends EventSubscriberCase
 {
     public function testGetSubscribedEvents(): void
     {
@@ -45,13 +42,22 @@ class TranslationMetaDataEventSubscriberTest extends BaseCase
 
         $subscriber = new TranslationMetaDataEventSubscriber();
         $subscriber->loadClassMetadata($args);
+        /** @var mixed[] */
         $table = $args->getClassMetadata()->table;
 
-        $this->assertArrayHasKey('uniqueConstraints', $table);
-        $this->assertArrayHasKey($indexName, $table['uniqueConstraints']);
-        $this->assertArrayHasKey('columns', $table['uniqueConstraints'][$indexName]);
-        $this->assertContains(Translation::LOCALE_COLUMN_NAME, $table['uniqueConstraints'][$indexName]['columns']);
-        $this->assertContains(Translation::TRANSLATABLE_COLUMN_NAME, $table['uniqueConstraints'][$indexName]['columns']);
+        $this->assertSame(
+            [
+                'uniqueConstraints' => [
+                    $indexName => [
+                        'columns' => [
+                            Translation::LOCALE_COLUMN_NAME,
+                            Translation::TRANSLATABLE_COLUMN_NAME,
+                        ],
+                    ],
+                ],
+            ],
+            $table
+        );
     }
 
     public function testLoadClassMetadataDontCreateIndexForNonTranslation(): void
@@ -67,7 +73,7 @@ class TranslationMetaDataEventSubscriberTest extends BaseCase
         $subscriber->loadClassMetadata($args);
         $table = $args->getClassMetadata()->table;
 
-        $this->assertArrayNotHasKey('uniqueConstraints', $table);
+        $this->assertSame([], $table);
     }
 
     /**
@@ -75,10 +81,11 @@ class TranslationMetaDataEventSubscriberTest extends BaseCase
      */
     public function testLoadClassMetadataFixAssociations(string $source, string $target, string|Throwable $result): void
     {
+        $associationName = 'test';
         $args = $this->createEventArgsMock(
             [
                 'associations' => [
-                    [
+                    $associationName => [
                         'sourceEntity' => $source,
                         'targetEntity' => $target,
                     ],
@@ -97,7 +104,7 @@ class TranslationMetaDataEventSubscriberTest extends BaseCase
         $associations = $args->getClassMetadata()->associationMappings;
 
         if (!($result instanceof Throwable)) {
-            $this->assertSame($result, $associations[0]['targetEntity']);
+            $this->assertSame($result, $associations[$associationName]['targetEntity'] ?? '');
         }
     }
 
@@ -135,25 +142,5 @@ class TranslationMetaDataEventSubscriberTest extends BaseCase
                 new MappingException('must extends'),
             ],
         ];
-    }
-
-    private function createEventArgsMock(array $data = []): LoadClassMetadataEventArgs
-    {
-        /** @var ClassMetadata&MockObject */
-        $metadata = $this->getMockBuilder(ClassMetadata::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $metadata->method('getName')->willReturn($data['name'] ?? '');
-        $metadata->method('getAssociationMappings')->willReturn($data['associations'] ?? []);
-        $metadata->associationMappings = $data['associations'] ?? [];
-        $metadata->table = $data['table'] ?? [];
-
-        /** @var LoadClassMetadataEventArgs&MockObject */
-        $argsMock = $this->getMockBuilder(LoadClassMetadataEventArgs::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $argsMock->method('getClassMetadata')->willReturn($metadata);
-
-        return $argsMock;
     }
 }

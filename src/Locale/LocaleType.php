@@ -18,8 +18,10 @@ class LocaleType extends StringType
 
     /**
      * {@inheritDoc}
+     *
+     * @return Locale|null
      */
-    public function convertToPHPValue($value, AbstractPlatform $platform)
+    public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?Locale
     {
         if ($value === null) {
             return null;
@@ -40,8 +42,10 @@ class LocaleType extends StringType
 
     /**
      * {@inheritDoc}
+     *
+     * @return string|null
      */
-    public function convertToDatabaseValue($value, AbstractPlatform $platform)
+    public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): ?string
     {
         if ($value === null) {
             return null;

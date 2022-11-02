@@ -25,7 +25,7 @@ class LocaleTypeTest extends BaseCase
         /** @var AbstractPlatform&MockObject */
         $platformMock = $this->getMockBuilder(AbstractPlatform::class)->getMock();
 
-        $type = new LocaleType();
+        $type = $this->createLocaleType();
 
         if ($reference instanceof Throwable) {
             $this->expectException(\get_class($reference));
@@ -70,7 +70,7 @@ class LocaleTypeTest extends BaseCase
         /** @var AbstractPlatform&MockObject */
         $platformMock = $this->getMockBuilder(AbstractPlatform::class)->getMock();
 
-        $type = new LocaleType();
+        $type = $this->createLocaleType();
 
         if ($reference instanceof Throwable) {
             $this->expectException(\get_class($reference));
@@ -101,8 +101,16 @@ class LocaleTypeTest extends BaseCase
 
     public function testGetName(): void
     {
-        $type = new LocaleType();
+        $type = $this->createLocaleType();
 
         $this->assertSame(LocaleType::LOCALE_TYPE, $type->getName());
+    }
+
+    /**
+     * @psalm-suppress InternalMethod
+     */
+    protected function createLocaleType(): LocaleType
+    {
+        return new LocaleType();
     }
 }
