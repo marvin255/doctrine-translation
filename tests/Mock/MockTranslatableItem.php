@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Marvin255\DoctrineTranslationBundle\Tests\Mock;
 
-use Marvin255\DoctrineTranslationBundle\Entity\Translation;
+use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 
 /**
  * @internal
  */
-class MockItemTranslation extends Translation
+class MockTranslatableItem extends Translatable
 {
 }
