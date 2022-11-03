@@ -8,10 +8,8 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\ConversionException;
 use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 use Marvin255\DoctrineTranslationBundle\Locale\LocaleType;
-use Marvin255\DoctrineTranslationBundle\Locale\LocaleValue;
 use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
 use PHPUnit\Framework\MockObject\MockObject;
-use Throwable;
 
 /**
  * @internal
@@ -26,9 +24,9 @@ class LocaleTypeTest extends BaseCase
         /** @var AbstractPlatform&MockObject */
         $platformMock = $this->getMockBuilder(AbstractPlatform::class)->getMock();
 
-        $type = new LocaleType();
+        $type = $this->createLocaleType();
 
-        if ($reference instanceof Throwable) {
+        if ($reference instanceof \Throwable) {
             $this->expectException(\get_class($reference));
             $type->convertToPHPValue($value, $platformMock);
         } elseif ($reference === null) {
@@ -71,9 +69,9 @@ class LocaleTypeTest extends BaseCase
         /** @var AbstractPlatform&MockObject */
         $platformMock = $this->getMockBuilder(AbstractPlatform::class)->getMock();
 
-        $type = new LocaleType();
+        $type = $this->createLocaleType();
 
-        if ($reference instanceof Throwable) {
+        if ($reference instanceof \Throwable) {
             $this->expectException(\get_class($reference));
             $type->convertToDatabaseValue($value, $platformMock);
         } else {
@@ -86,7 +84,7 @@ class LocaleTypeTest extends BaseCase
     {
         return [
             'locale object' => [
-                new LocaleValue('en-US'),
+                new Locale('en-US'),
                 'en-US',
             ],
             'null locale' => [
@@ -102,8 +100,16 @@ class LocaleTypeTest extends BaseCase
 
     public function testGetName(): void
     {
-        $type = new LocaleType();
+        $type = $this->createLocaleType();
 
         $this->assertSame(LocaleType::LOCALE_TYPE, $type->getName());
+    }
+
+    /**
+     * @psalm-suppress InternalMethod
+     */
+    protected function createLocaleType(): LocaleType
+    {
+        return new LocaleType();
     }
 }

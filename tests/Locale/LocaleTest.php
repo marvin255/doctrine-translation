@@ -4,25 +4,24 @@ declare(strict_types=1);
 
 namespace Marvin255\DoctrineTranslationBundle\Tests\Locale;
 
-use InvalidArgumentException;
-use Marvin255\DoctrineTranslationBundle\Locale\LocaleValue;
+use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
 
 /**
  * @internal
  */
-class LocaleValueTest extends BaseCase
+class LocaleTest extends BaseCase
 {
     public function testEmptyConstructorValue(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        new LocaleValue('');
+        $this->expectException(\InvalidArgumentException::class);
+        new Locale('');
     }
 
     public function testSpacesOnlyConstructorValue(): void
     {
-        $this->expectException(InvalidArgumentException::class);
-        new LocaleValue('       ');
+        $this->expectException(\InvalidArgumentException::class);
+        new Locale('       ');
     }
 
     /**
@@ -30,8 +29,8 @@ class LocaleValueTest extends BaseCase
      */
     public function testGetLanguage(string $locale, string $reference): void
     {
-        $localeValue = new LocaleValue($locale);
-        $language = $localeValue->getLanguage();
+        $locale = new Locale($locale);
+        $language = $locale->getLanguage();
 
         $this->assertSame($reference, $language);
     }
@@ -67,8 +66,8 @@ class LocaleValueTest extends BaseCase
      */
     public function testGetRegion(string $locale, string $reference): void
     {
-        $localeValue = new LocaleValue($locale);
-        $region = $localeValue->getRegion();
+        $locale = new Locale($locale);
+        $region = $locale->getRegion();
 
         $this->assertSame($reference, $region);
     }
@@ -104,8 +103,8 @@ class LocaleValueTest extends BaseCase
      */
     public function testGetFull(string $locale, string $reference): void
     {
-        $localeValue = new LocaleValue($locale);
-        $full = $localeValue->getFull();
+        $locale = new Locale($locale);
+        $full = $locale->getFull();
 
         $this->assertSame($reference, $full);
     }
@@ -132,6 +131,35 @@ class LocaleValueTest extends BaseCase
             'wrong space in the end' => [
                 ' en-US ',
                 'en-US',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider provideEquals
+     */
+    public function testEquals(string $localeOne, string $localeTwo, bool $reference): void
+    {
+        $localeObjectOne = new Locale($localeOne);
+        $localeObjectTwo = new Locale($localeTwo);
+
+        $result = $localeObjectOne->equals($localeObjectTwo);
+
+        $this->assertSame($reference, $result);
+    }
+
+    public function provideEquals(): array
+    {
+        return [
+            'equal' => [
+                'en-US',
+                'en-US',
+                true,
+            ],
+            'not equal' => [
+                'en-US',
+                'en-GB',
+                false,
             ],
         ];
     }

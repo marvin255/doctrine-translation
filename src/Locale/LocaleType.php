@@ -7,7 +7,6 @@ namespace Marvin255\DoctrineTranslationBundle\Locale;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\ConversionException;
 use Doctrine\DBAL\Types\StringType;
-use Throwable;
 
 /**
  * Doctrine type field to save and load locale.
@@ -18,8 +17,10 @@ class LocaleType extends StringType
 
     /**
      * {@inheritDoc}
+     *
+     * @return Locale|null
      */
-    public function convertToPHPValue($value, AbstractPlatform $platform)
+    public function convertToPHPValue(mixed $value, AbstractPlatform $platform): ?Locale
     {
         if ($value === null) {
             return null;
@@ -27,8 +28,8 @@ class LocaleType extends StringType
 
         if (\is_string($value)) {
             try {
-                $locale = new LocaleValue($value);
-            } catch (Throwable $e) {
+                $locale = new Locale($value);
+            } catch (\Throwable $e) {
                 throw ConversionException::conversionFailedFormat($value, self::LOCALE_TYPE, 'en-US', $e);
             }
 
@@ -40,8 +41,10 @@ class LocaleType extends StringType
 
     /**
      * {@inheritDoc}
+     *
+     * @return string|null
      */
-    public function convertToDatabaseValue($value, AbstractPlatform $platform)
+    public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): ?string
     {
         if ($value === null) {
             return null;
