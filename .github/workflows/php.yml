@@ -107,6 +107,7 @@ jobs:
           $SYMFONY_FOLDER/bin/console debug:config doctrine dbal.types | grep "marvin255_locale"
       - name: Check that migrations for module are ok
         run: |
-          cp .github/mock/Test.php $SYMFONY_FOLDER/src/Entity/Test.php
-          cp .github/mock/TestTranslation.php $SYMFONY_FOLDER/src/Entity/TestTranslation.php
+          cp ./.github/mock/Test.php $SYMFONY_FOLDER/src/Entity/Test.php
+          cp ./.github/mock/TestTranslation.php $SYMFONY_FOLDER/src/Entity/TestTranslation.php
           $SYMFONY_FOLDER/bin/console make:migration
+          $SYMFONY_FOLDER/bin/console doctrine:migrations:migrate
