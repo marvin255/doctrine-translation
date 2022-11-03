@@ -108,7 +108,7 @@ jobs:
       - name: Check that migrations for module are ok
         run: |
           ls -la ./
-          cp ./.github/mock/Test.php $SYMFONY_FOLDER/src/Entity/Test.php
-          cp ./.github/mock/TestTranslation.php $SYMFONY_FOLDER/src/Entity/TestTranslation.php
+          cp ./.github/workflows/mock/Test.php $SYMFONY_FOLDER/src/Entity/Test.php
+          cp ./.github/workflows/mock/TestTranslation.php $SYMFONY_FOLDER/src/Entity/TestTranslation.php
           $SYMFONY_FOLDER/bin/console make:migration
           $SYMFONY_FOLDER/bin/console doctrine:migrations:migrate
