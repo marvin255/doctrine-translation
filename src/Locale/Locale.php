@@ -7,7 +7,7 @@ namespace Marvin255\DoctrineTranslationBundle\Locale;
 /**
  * Simple object that provides locale value for doctrine.
  */
-final class Locale
+class Locale
 {
     private readonly string $language;
 
