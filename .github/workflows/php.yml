@@ -114,6 +114,6 @@ jobs:
         run: |
           cp ./.github/workflows/mock/Test.php $SYMFONY_FOLDER/src/Entity/Test.php
           cp ./.github/workflows/mock/TestTranslation.php $SYMFONY_FOLDER/src/Entity/TestTranslation.php
-          $SYMFONY_FOLDER/bin/console make:migration -n
+          $SYMFONY_FOLDER/bin/console make:migration -q -n
           cat $SYMFONY_FOLDER/migrations/*
-          $SYMFONY_FOLDER/bin/console doctrine:migrations:migrate -n
+          $SYMFONY_FOLDER/bin/console doctrine:migrations:migrate -q -n
