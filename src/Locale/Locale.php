@@ -15,6 +15,9 @@ class Locale
 
     private readonly string $full;
 
+    /**
+     * @internal please use LocaleFactory to create locale
+     */
     public function __construct(string $locale)
     {
         $trimmedLocale = trim($locale);
