@@ -8,6 +8,8 @@ use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
 use Marvin255\DoctrineTranslationBundle\Exception\MappingException;
 use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockNonTranslatableTranslation;
+use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockNonTranslation;
+use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockNoPairTranslatable;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockNoPairTranslation;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslatableItem;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslatableItemTranslation;
@@ -70,12 +72,20 @@ class ClassNameManagerTest extends BaseCase
     /**
      * @dataProvider provideGetTranslationClassForTranslatable
      */
-    public function testGetTranslationClassForTranslatable(string $className, string $reference): void
+    public function testGetTranslationClassForTranslatable(string $className, \Throwable|string $reference): void
     {
         $manager = new ClassNameManager();
+
+        if ($reference instanceof \Throwable) {
+            $this->expectException(\get_class($reference));
+            $this->expectDeprecationMessage($reference->getMessage());
+        }
+
         $class = $manager->getTranslationClassForTranslatable($className);
 
-        $this->assertSame($reference, $class);
+        if (!($reference instanceof \Throwable)) {
+            $this->assertSame($reference, $class);
+        }
     }
 
     public function provideGetTranslationClassForTranslatable(): array
@@ -84,6 +94,18 @@ class ClassNameManagerTest extends BaseCase
             'correct class' => [
                 MockTranslatableItem::class,
                 MockTranslatableItemTranslation::class,
+            ],
+            'not a class' => [
+                '_qwe_qwe',
+                new MappingException("doesn't exist"),
+            ],
+            'no transaction pair' => [
+                MockNoPairTranslatable::class,
+                new MappingException("Can't find"),
+            ],
+            'wrong transaction class' => [
+                MockNonTranslation::class,
+                new MappingException('must extend'),
             ],
         ];
     }

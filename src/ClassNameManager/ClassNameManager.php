@@ -33,10 +33,27 @@ class ClassNameManager
 
     /**
      * Returns class name for translation related to set translatable.
+     *
+     * @psalm-return class-string
      */
     public function getTranslationClassForTranslatable(string $translatableClass): string
     {
-        return $translatableClass . self::TRANSLATION_CLASS_SUFFIX;
+        if (!class_exists($translatableClass)) {
+            throw new MappingException("Class '{$translatableClass}' doesn't exist");
+        }
+
+        $className = $translatableClass . self::TRANSLATION_CLASS_SUFFIX;
+
+        if (!class_exists($className)) {
+            throw new MappingException("Can't find '{$className}' for translatable '{$translatableClass}'");
+        }
+
+        if (!is_subclass_of($className, Translation::class)) {
+            $requiredType = Translation::class;
+            throw new MappingException("'{$className}' for translatable '{$translatableClass}' must extend '{$requiredType}'");
+        }
+
+        return $className;
     }
 
     /**
