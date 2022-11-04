@@ -41,14 +41,31 @@ class ClassNameManager
 
     /**
      * Returns class name for translation related to set translatable.
+     *
+     * @psalm-return class-string
      */
     public function getTranslatableClassForTranslation(string $translationClass): string
     {
+        if (!class_exists($translationClass)) {
+            throw new MappingException("Class '{$translationClass}' doesn't exist");
+        }
+
         $suffix = self::TRANSLATION_CLASS_SUFFIX;
         if (!preg_match("/(.+){$suffix}$/", $translationClass, $matches)) {
             throw new MappingException("Class name '{$translationClass}' must end with '{$suffix}' suffix");
         }
 
-        return $matches[1];
+        $className = $matches[1];
+
+        if (!class_exists($className)) {
+            throw new MappingException("Can't find '{$className}' for translation '{$translationClass}'");
+        }
+
+        if (!$this->isTranslatableClass($className)) {
+            $requiredType = Translatable::class;
+            throw new MappingException("'{$className}' for translation '{$translationClass}' must extends '{$requiredType}'");
+        }
+
+        return $className;
     }
 }

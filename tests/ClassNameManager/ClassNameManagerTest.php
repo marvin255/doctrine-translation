@@ -7,6 +7,8 @@ namespace Marvin255\DoctrineTranslationBundle\Tests\ClassNameManager;
 use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
 use Marvin255\DoctrineTranslationBundle\Exception\MappingException;
 use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
+use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockNonTranslatableTranslation;
+use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockNoPairTranslation;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslatableItem;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslatableItemTranslation;
 
@@ -112,9 +114,21 @@ class ClassNameManagerTest extends BaseCase
                 MockTranslatableItemTranslation::class,
                 MockTranslatableItem::class,
             ],
-            'incorrect class' => [
+            'not a class' => [
+                '_qwe_qwe',
+                new MappingException("doesn't exist"),
+            ],
+            'translation class without suffix' => [
                 self::class,
                 new MappingException('must end with'),
+            ],
+            'translation without translatable pair' => [
+                MockNoPairTranslation::class,
+                new MappingException("Can't find"),
+            ],
+            'translatable with incorrect parent' => [
+                MockNonTranslatableTranslation::class,
+                new MappingException('must extends'),
             ],
         ];
     }
