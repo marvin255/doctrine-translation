@@ -5,10 +5,10 @@ services:
 
   Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslatableMetaDataEventSubscriber:
     class: Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslatableMetaDataEventSubscriber
-    arguments:
-      - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
     tags: ['doctrine.event_subscriber']
 
   Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslationMetaDataEventSubscriber:
     class: Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslationMetaDataEventSubscriber
+    arguments:
+      - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
     tags: ['doctrine.event_subscriber']
