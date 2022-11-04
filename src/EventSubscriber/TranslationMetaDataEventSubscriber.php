@@ -8,15 +8,22 @@ use Doctrine\Bundle\DoctrineBundle\EventSubscriber\EventSubscriberInterface;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
-use Marvin255\DoctrineTranslationBundle\Exception\MappingException;
 
 /**
  * Event subscriber that allows dynamically change Doctrine mappings for translations.
  */
 final class TranslationMetaDataEventSubscriber implements EventSubscriberInterface
 {
+    private readonly ClassNameManager $classNameManager;
+
+    public function __construct(ClassNameManager $classNameManager)
+    {
+        $this->classNameManager = $classNameManager;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -42,7 +49,7 @@ final class TranslationMetaDataEventSubscriber implements EventSubscriberInterfa
      */
     private function addTranslationIndex(ClassMetadata $metadata): void
     {
-        if (!is_subclass_of($metadata->getName(), Translation::class)) {
+        if (!$this->classNameManager->isTranslationClass($metadata->getName())) {
             return;
         }
 
@@ -63,39 +70,13 @@ final class TranslationMetaDataEventSubscriber implements EventSubscriberInterfa
         $associations = $metadata->getAssociationMappings();
         foreach ($associations as $key => $association) {
             if (
-                is_subclass_of($association['sourceEntity'], Translation::class)
+                $this->classNameManager->isTranslationClass($association['sourceEntity'])
                 && $association['targetEntity'] === Translatable::class
             ) {
-                $targetEntity = $this->createTranslatableClassName($association['sourceEntity']);
+                $targetEntity = $this->classNameManager->getTranslatableClassForTranslation($association['sourceEntity']);
                 // it's a dirty hack, but there is no another way to update association
                 $metadata->associationMappings[$key]['targetEntity'] = $targetEntity;
             }
         }
-    }
-
-    /**
-     * Creates class name for related translatable entity.
-     *
-     * @psalm-return class-string
-     */
-    private function createTranslatableClassName(string $sourceClassName): string
-    {
-        $suffix = Translation::TRANSLATION_CLASS_SUFFIX;
-        if (!preg_match("/(.+){$suffix}$/", $sourceClassName, $matches)) {
-            throw new MappingException("Entity '{$sourceClassName}' name must ends with '{$suffix}' suffix");
-        }
-
-        $className = $matches[1];
-
-        if (!class_exists($className)) {
-            throw new MappingException("Can't find '{$className}' for translation '{$sourceClassName}'");
-        }
-
-        if (!is_subclass_of($className, Translatable::class)) {
-            $requiredType = Translatable::class;
-            throw new MappingException("'{$className}' for translation '{$sourceClassName}' must extends '{$requiredType}'");
-        }
-
-        return $className;
     }
 }
