@@ -1,5 +1,8 @@
 services:
 
+  Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager:
+    class: Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager
+
   Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslatableMetaDataEventSubscriber:
     class: Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslatableMetaDataEventSubscriber
     tags: ['doctrine.event_subscriber']
