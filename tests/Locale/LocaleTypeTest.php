@@ -105,6 +105,17 @@ class LocaleTypeTest extends BaseCase
         $this->assertSame(LocaleType::LOCALE_TYPE, $type->getName());
     }
 
+    public function testRequiresSQLCommentHint(): void
+    {
+        /** @var AbstractPlatform&MockObject */
+        $platformMock = $this->getMockBuilder(AbstractPlatform::class)->getMock();
+
+        $type = $this->createLocaleType();
+        $needSqlComment = $type->requiresSQLCommentHint($platformMock);
+
+        $this->assertTrue($needSqlComment);
+    }
+
     /**
      * @psalm-suppress InternalMethod
      */
