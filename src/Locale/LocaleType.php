@@ -59,16 +59,20 @@ class LocaleType extends StringType
 
     /**
      * {@inheritDoc}
+     *
+     * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return self::LOCALE_TYPE;
     }
 
     /**
      * {@inheritDoc}
+     *
+     * @return bool
      */
-    public function requiresSQLCommentHint(AbstractPlatform $platform)
+    public function requiresSQLCommentHint(AbstractPlatform $platform): bool
     {
         return true;
     }

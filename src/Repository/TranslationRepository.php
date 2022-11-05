@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Marvin255\DoctrineTranslationBundle\Repository;
 
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
@@ -15,40 +15,26 @@ use Marvin255\DoctrineTranslationBundle\Locale\Locale;
  */
 class TranslationRepository
 {
-    private readonly EntityManager $em;
+    private readonly EntityManagerInterface $em;
 
     private readonly ClassNameManager $classNameManager;
 
-    public function __construct(EntityManager $em, ClassNameManager $classNameManager)
+    public function __construct(EntityManagerInterface $em, ClassNameManager $classNameManager)
     {
         $this->em = $em;
         $this->classNameManager = $classNameManager;
     }
 
     /**
-     * Searches translations related for set item.
-     * If locales set then translations will be load only for that locales.
-     *
-     * @param Translatable     $item
-     * @param iterable<Locale> $locales
-     *
-     * @return iterable<Translation>
-     */
-    public function findTranslationsForItem(Translatable $item, iterable $locales = []): iterable
-    {
-        return $this->findTranslationsForItems([$item], $locales);
-    }
-
-    /**
      * Searches translations related for set list of items.
      * If locales set then translations will be load only for that locales.
      *
-     * @param iterable<Translatable> $items
-     * @param iterable<Locale>       $locales
+     * @param iterable<Translatable>|Translatable $items
+     * @param iterable<Locale>|Locale             $locales
      *
      * @return iterable<Translation>
      */
-    public function findTranslationsForItems(iterable $items, iterable $locales = []): iterable
+    public function findTranslations(iterable|Translatable $items, iterable|Locale $locales = []): iterable
     {
         $itemsByClasses = $this->groupItemsByTranslationClass($items);
 
@@ -59,17 +45,18 @@ class TranslationRepository
         $localesStrings = $this->getLocaleStringsFromLocales($locales);
 
         $result = [];
+        $alias = 't';
         foreach ($itemsByClasses as $translationClass => $translatableItems) {
             $qb = $this->em->createQueryBuilder();
-            $qb->from($translationClass, 't');
-            $qb->where('t.' . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)');
+            $qb->select($alias)->from($translationClass, $alias);
+            $qb->where("{$alias}." . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)');
             $qb->setParameter('translatables', $translatableItems);
             if (!empty($localesStrings)) {
-                $qb->andWhere('t.' . Translation::LOCALE_FIELD_NAME . ' IN (:locales)');
+                $qb->andWhere("{$alias}." . Translation::LOCALE_FIELD_NAME . ' IN (:locales)');
                 $qb->setParameter('locales', $localesStrings);
             }
             /** @var Translation[] */
-            $tmpResult = $qb->getQuery()->getArrayResult();
+            $tmpResult = $qb->getQuery()->getResult();
             $result = array_merge($result, $tmpResult);
         }
 
@@ -79,12 +66,16 @@ class TranslationRepository
     /**
      * Groups translatable items by translation class for search.
      *
-     * @param iterable<Translatable> $items
+     * @param iterable<Translatable>|Translatable $items
      *
      * @return array<string, Translatable[]>
      */
-    private function groupItemsByTranslationClass(iterable $items): array
+    private function groupItemsByTranslationClass(iterable|Translatable $items): array
     {
+        if ($items instanceof Translatable) {
+            $items = [$items];
+        }
+
         $itemsByClasses = [];
         foreach ($items as $item) {
             $itemClass = \get_class($item);
@@ -98,12 +89,16 @@ class TranslationRepository
     /**
      * Convert list of Locale objects to list of strings.
      *
-     * @param iterable<Locale> $locales
+     * @param iterable<Locale>|Locale $locales
      *
      * @return string[]
      */
-    private function getLocaleStringsFromLocales(iterable $locales): array
+    private function getLocaleStringsFromLocales(iterable|Locale $locales): array
     {
+        if ($locales instanceof Locale) {
+            $locales = [$locales];
+        }
+
         $localesStrings = [];
         foreach ($locales as $locale) {
             $localeString = $locale->getFull();
