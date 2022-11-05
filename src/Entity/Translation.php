@@ -21,9 +21,10 @@ use Marvin255\DoctrineTranslationBundle\Locale\LocaleType;
 #[MappedSuperclass]
 abstract class Translation
 {
+    public const LOCALE_FIELD_NAME = 'locale';
     public const LOCALE_COLUMN_NAME = 'locale';
+    public const TRANSLATABLE_FIELD_NAME = 'translatable';
     public const TRANSLATABLE_COLUMN_NAME = 'translatable_id';
-    public const TRANSLATION_CLASS_SUFFIX = 'Translation';
 
     #[Id, GeneratedValue, Column(name: 'id', type: 'integer', nullable: false)]
     protected ?int $id = null;

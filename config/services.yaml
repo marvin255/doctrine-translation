@@ -14,3 +14,9 @@ services:
     arguments:
       - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
     tags: ['doctrine.event_subscriber']
+
+  Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository:
+    class: Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository
+    arguments:
+      - '@doctrine.orm.entity_manager'
+      - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
