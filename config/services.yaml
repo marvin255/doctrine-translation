@@ -19,4 +19,5 @@ services:
     class: Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository
     arguments:
       - '@doctrine.orm.entity_manager'
+      - '@translation.locale_switcher'
       - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'

@@ -9,6 +9,8 @@ use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
 use Marvin255\DoctrineTranslationBundle\Locale\Locale;
+use Marvin255\DoctrineTranslationBundle\Locale\LocaleFactory;
+use Symfony\Component\Translation\LocaleSwitcher;
 
 /**
  * Repository that can query translations for items.
@@ -17,12 +19,32 @@ class TranslationRepository
 {
     private readonly EntityManagerInterface $em;
 
+    private readonly LocaleSwitcher $localeSwitcher;
+
     private readonly ClassNameManager $classNameManager;
 
-    public function __construct(EntityManagerInterface $em, ClassNameManager $classNameManager)
-    {
+    public function __construct(
+        EntityManagerInterface $em,
+        LocaleSwitcher $localeSwitcher,
+        ClassNameManager $classNameManager
+    ) {
         $this->em = $em;
+        $this->localeSwitcher = $localeSwitcher;
         $this->classNameManager = $classNameManager;
+    }
+
+    /**
+     * Searches translations related for set list of items and current app locale.
+     *
+     * @param iterable<Translatable>|Translatable $items
+     *
+     * @return iterable<Translation>
+     */
+    public function findTranslationForCurrentLocale(iterable|Translatable $items): iterable
+    {
+        $currentLocale = LocaleFactory::create($this->localeSwitcher->getLocale());
+
+        return $this->findTranslations($items, $currentLocale);
     }
 
     /**
