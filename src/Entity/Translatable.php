@@ -22,7 +22,7 @@ abstract class Translatable
      * @psalm-var Collection<int, R>
      */
     #[OneToMany(targetEntity: Translation::class, mappedBy: 'translatable', orphanRemoval: true)]
-    private Collection $translations;
+    protected Collection $translations;
 
     /**
      * @psalm-var R|null
