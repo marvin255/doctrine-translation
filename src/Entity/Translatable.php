@@ -22,7 +22,12 @@ abstract class Translatable
      * @psalm-var Collection<int, R>
      */
     #[OneToMany(targetEntity: Translation::class, mappedBy: 'translatable', orphanRemoval: true)]
-    protected Collection $translations;
+    private Collection $translations;
+
+    /**
+     * @psalm-var R|null
+     */
+    private ?Translation $currentTranslation = null;
 
     public function __construct()
     {
@@ -85,5 +90,27 @@ abstract class Translatable
             ->first();
 
         return $item === false ? null : $item;
+    }
+
+    /**
+     * Sets new current translation.
+     *
+     * @psalm-param R|null $translation
+     */
+    public function setCurrentTranslation(?Translation $translation): self
+    {
+        $this->currentTranslation = $translation;
+
+        return $this;
+    }
+
+    /**
+     * Returns current translation if it's set.
+     *
+     * @psalm-return R|null
+     */
+    public function getCurrentTranslation(): ?Translation
+    {
+        return $this->currentTranslation;
     }
 }
