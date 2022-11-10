@@ -5,8 +5,7 @@
             "src"
         ],
         "excludes": [
-            "Marvin255DoctrineTranslationBundle.php",
-            "TranslationRepository.php"
+            "Marvin255DoctrineTranslationBundle.php"
         ]
     },
     "logs": {

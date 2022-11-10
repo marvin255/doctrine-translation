@@ -17,6 +17,8 @@ use Symfony\Component\Translation\LocaleSwitcher;
  */
 class TranslationRepository
 {
+    public const QUERY_ALIAS = 't';
+
     private readonly EntityManagerInterface $em;
 
     private readonly LocaleSwitcher $localeSwitcher;
@@ -67,14 +69,14 @@ class TranslationRepository
         $localesStrings = $this->getLocaleStringsFromLocales($locales);
 
         $result = [];
-        $alias = 't';
         foreach ($itemsByClasses as $translationClass => $translatableItems) {
             $qb = $this->em->createQueryBuilder();
-            $qb->select($alias)->from($translationClass, $alias);
-            $qb->where("{$alias}." . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)');
+            $qb->select(self::QUERY_ALIAS);
+            $qb->from($translationClass, self::QUERY_ALIAS);
+            $qb->where(self::QUERY_ALIAS . '.' . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)');
             $qb->setParameter('translatables', $translatableItems);
             if (!empty($localesStrings)) {
-                $qb->andWhere("{$alias}." . Translation::LOCALE_FIELD_NAME . ' IN (:locales)');
+                $qb->andWhere(self::QUERY_ALIAS . '.' . Translation::LOCALE_FIELD_NAME . ' IN (:locales)');
                 $qb->setParameter('locales', $localesStrings);
             }
             /** @var Translation[] */
