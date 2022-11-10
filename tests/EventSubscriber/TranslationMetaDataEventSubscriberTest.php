@@ -8,13 +8,8 @@ use Doctrine\ORM\Events;
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
 use Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslationMetaDataEventSubscriber;
-use Marvin255\DoctrineTranslationBundle\Exception\MappingException;
 use Marvin255\DoctrineTranslationBundle\Tests\EventSubscriberCase;
-use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockNonTranslatableTranslation;
-use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockNoPairTranslation;
-use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslatableItem;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslatableItemTranslation;
-use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslationWrong;
 
 /**
  * @internal
@@ -23,7 +18,9 @@ class TranslationMetaDataEventSubscriberTest extends EventSubscriberCase
 {
     public function testGetSubscribedEvents(): void
     {
-        $subscriber = new TranslationMetaDataEventSubscriber();
+        $classNameManager = $this->createClassNameManagerMock();
+
+        $subscriber = new TranslationMetaDataEventSubscriber($classNameManager);
         $events = $subscriber->getSubscribedEvents();
 
         $this->assertSame([Events::loadClassMetadata], $events);
@@ -33,16 +30,11 @@ class TranslationMetaDataEventSubscriberTest extends EventSubscriberCase
     {
         $name = MockTranslatableItemTranslation::class;
         $indexName = strtolower(str_replace('\\', '_', $name)) . '_translation_idx';
-        $args = $this->createEventArgsMock(
-            [
-                'name' => $name,
-            ]
-        );
+        $classNameManager = $this->createClassNameManagerMock(['Translatable' => $name]);
+        $args = $this->createEventArgsMock(['name' => $name]);
 
-        $subscriber = new TranslationMetaDataEventSubscriber();
+        $subscriber = new TranslationMetaDataEventSubscriber($classNameManager);
         $subscriber->loadClassMetadata($args);
-        /** @var mixed[] */
-        $table = $args->getClassMetadata()->table;
 
         $this->assertSame(
             [
@@ -55,90 +47,64 @@ class TranslationMetaDataEventSubscriberTest extends EventSubscriberCase
                     ],
                 ],
             ],
-            $table
+            $args->getClassMetadata()->table
         );
     }
 
     public function testLoadClassMetadataDontCreateIndexForNonTranslation(): void
     {
-        $name = 'test';
-        $args = $this->createEventArgsMock(
-            [
-                'name' => $name,
-            ]
-        );
+        $classNameManager = $this->createClassNameManagerMock();
+        $args = $this->createEventArgsMock(['name' => 'test_entity_name']);
 
-        $subscriber = new TranslationMetaDataEventSubscriber();
+        $subscriber = new TranslationMetaDataEventSubscriber($classNameManager);
         $subscriber->loadClassMetadata($args);
         $table = $args->getClassMetadata()->table;
 
         $this->assertSame([], $table);
     }
 
-    /**
-     * @dataProvider provideLoadClassMetadataFixAssociations
-     */
-    public function testLoadClassMetadataFixAssociations(string $source, string $target, string|\Throwable $result): void
+    public function testLoadClassMetadataFixAssociations(): void
     {
-        $associationName = 'test';
+        $associationName = 'correct_association';
+        $associationTranslation = 'Translation';
+        $associationTranslatable = 'Translatable';
+
+        $association1Name = 'wrong_target_association';
+        $association1Translation = 'Translation1';
+        $association1Translatable = 'Translatable1';
+
+        $association2Name = 'wrong_source_association';
+
+        $classNameManager = $this->createClassNameManagerMock(
+            [
+                $associationTranslatable => $associationTranslation,
+                $association1Translatable => $association1Translation,
+            ]
+        );
         $args = $this->createEventArgsMock(
             [
                 'associations' => [
                     $associationName => [
-                        'sourceEntity' => $source,
-                        'targetEntity' => $target,
+                        'sourceEntity' => $associationTranslation,
+                        'targetEntity' => Translatable::class,
+                    ],
+                    $association1Name => [
+                        'sourceEntity' => $association1Translation,
+                        'targetEntity' => self::class,
+                    ],
+                    $association2Name => [
+                        'sourceEntity' => 'non_existed_source',
+                        'targetEntity' => Translatable::class,
                     ],
                 ],
             ]
         );
 
-        $subscriber = new TranslationMetaDataEventSubscriber();
-
-        if ($result instanceof \Throwable) {
-            $this->expectException(\get_class($result));
-            $this->expectExceptionMessage($result->getMessage());
-        }
-
+        $subscriber = new TranslationMetaDataEventSubscriber($classNameManager);
         $subscriber->loadClassMetadata($args);
 
-        if (!($result instanceof \Throwable)) {
-            $this->assertAssociationTarget($result, $args, $associationName);
-        }
-    }
-
-    public function provideLoadClassMetadataFixAssociations(): array
-    {
-        return [
-            'Translation - Translatable association must be fixed' => [
-                MockTranslatableItemTranslation::class,
-                Translatable::class,
-                MockTranslatableItem::class,
-            ],
-            "Association with wrong source class mustn't be fixed" => [
-                self::class,
-                Translatable::class,
-                Translatable::class,
-            ],
-            "Association with wrong target class mustn't be fixed" => [
-                MockTranslatableItemTranslation::class,
-                self::class,
-                self::class,
-            ],
-            'Translation class without suffix' => [
-                MockTranslationWrong::class,
-                Translatable::class,
-                new MappingException('name must ends with'),
-            ],
-            'Translation without translatable pair' => [
-                MockNoPairTranslation::class,
-                Translatable::class,
-                new MappingException("Can't find"),
-            ],
-            'Translatable with incorrect parent' => [
-                MockNonTranslatableTranslation::class,
-                Translatable::class,
-                new MappingException('must extends'),
-            ],
-        ];
+        $this->assertAssociationTarget($associationTranslatable, $args, $associationName);
+        $this->assertAssociationTarget(self::class, $args, $association1Name);
+        $this->assertAssociationTarget(Translatable::class, $args, $association2Name);
     }
 }

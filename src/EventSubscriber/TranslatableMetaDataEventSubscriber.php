@@ -8,15 +8,21 @@ use Doctrine\Bundle\DoctrineBundle\EventSubscriber\EventSubscriberInterface;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
+use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
-use Marvin255\DoctrineTranslationBundle\Exception\MappingException;
 
 /**
  * Event subscriber that allows dynamically change Doctrine mappings for translatables.
  */
 final class TranslatableMetaDataEventSubscriber implements EventSubscriberInterface
 {
+    private readonly ClassNameManager $classNameManager;
+
+    public function __construct(ClassNameManager $classNameManager)
+    {
+        $this->classNameManager = $classNameManager;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -44,34 +50,13 @@ final class TranslatableMetaDataEventSubscriber implements EventSubscriberInterf
         $associations = $metadata->getAssociationMappings();
         foreach ($associations as $key => $association) {
             if (
-                is_subclass_of($association['sourceEntity'], Translatable::class)
+                $this->classNameManager->isTranslatableClass($association['sourceEntity'])
                 && $association['targetEntity'] === Translation::class
             ) {
-                $targetEntity = $this->createTranslationClassName($association['sourceEntity']);
+                $targetEntity = $this->classNameManager->getTranslationClassForTranslatable($association['sourceEntity']);
                 // it's a dirty hack, but there is no another way to update association
                 $metadata->associationMappings[$key]['targetEntity'] = $targetEntity;
             }
         }
-    }
-
-    /**
-     * Creates class name for related translation entity.
-     *
-     * @psalm-return class-string
-     */
-    private function createTranslationClassName(string $sourceClassName): string
-    {
-        $className = $sourceClassName . Translation::TRANSLATION_CLASS_SUFFIX;
-
-        if (!class_exists($className)) {
-            throw new MappingException("Can't find '{$className}' for translatable '{$sourceClassName}'");
-        }
-
-        if (!is_subclass_of($className, Translation::class)) {
-            $requiredType = Translation::class;
-            throw new MappingException("'{$className}' for translatable '{$sourceClassName}' must extends '{$requiredType}'");
-        }
-
-        return $className;
     }
 }
