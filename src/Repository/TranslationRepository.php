@@ -36,6 +36,19 @@ class TranslationRepository
     }
 
     /**
+     * Searches and sets translations related for set list of items and current app locale.
+     *
+     * @param iterable<Translatable>|Translatable $items
+     */
+    public function findAndSetTranslationForCurrentLocale(iterable|Translatable $items): void
+    {
+        $this->setCurrentTranslation(
+            $items,
+            $this->findTranslationForCurrentLocale($items)
+        );
+    }
+
+    /**
      * Searches translations related for set list of items and current app locale.
      *
      * @param iterable<Translatable>|Translatable $items
@@ -47,6 +60,20 @@ class TranslationRepository
         $currentLocale = LocaleFactory::create($this->localeSwitcher->getLocale());
 
         return $this->findTranslations($items, $currentLocale);
+    }
+
+    /**
+     * Searches and sets translations related for set list of items and set locale.
+     *
+     * @param iterable<Translatable>|Translatable $items
+     * @param Locale                              $locale
+     */
+    public function findAndSetTranslationForLocale(iterable|Translatable $items, Locale $locale): void
+    {
+        $this->setCurrentTranslation(
+            $items,
+            $this->findTranslations($items, $locale)
+        );
     }
 
     /**
