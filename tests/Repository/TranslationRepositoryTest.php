@@ -205,48 +205,95 @@ class TranslationRepositoryTest extends BaseCase
         $this->assertSame([], $res);
     }
 
+    /**
+     * @psalm-suppress MixedMethodCall
+     */
     public function testSetCurrentTranslation(): void
     {
-        $translationParent = $this->createTranslatableMock(Translatable::class, "0");
+        $translationParent = $this->createTranslatableMock(Translatable::class, '0');
         $translation = $this->createTranslationMock();
         $translation->method('getTranslatable')->willReturn($translationParent);
-        
-        $translationParent1 = $this->createTranslatableMock(Translatable::class, "1");
+
+        $translationParent1 = $this->createTranslatableMock(Translatable::class, '1');
         $translation1 = $this->createTranslationMock();
         $translation1->method('getTranslatable')->willReturn($translationParent1);
-        
+
         $translation2 = $this->createTranslationMock();
         $translation2->method('getTranslatable')->willReturn(null);
 
-        $translatable = $this->createTranslatableMock(Translatable::class, "1");
+        $translationParent3 = $this->createTranslatableMock(Translatable::class, '1');
+        $translation3 = $this->createTranslationMock();
+        $translation3->method('getTranslatable')->willReturn($translationParent3);
+
+        $translationParent4 = $this->createTranslatableMock(MockTranslatableItem::class, '2');
+        $translation4 = $this->createTranslationMock();
+        $translation4->method('getTranslatable')->willReturn($translationParent4);
+
+        $translatable = $this->createTranslatableMock(Translatable::class, '1');
         $translatable->expects($this->once())
             ->method('setCurrentTranslation')
-            ->with($this->identicalTo($translationParent1))
-            ->willReturn($translatable);
+            ->with($this->identicalTo($translation1))
+            ->willReturnSelf();
 
-        $translatable1 = $this->createTranslatableMock();
-        $translatable1->expects($this->never())->method('setCurrentTranslation');
+        $translatable1 = $this->createTranslatableMock(Translatable::class, '2');
+        $translatable1->expects($this->once())
+            ->method('setCurrentTranslation')
+            ->with($this->equalTo(null))
+            ->willReturnSelf();
 
         /** @var ClassMetadata&MockObject */
-        $meta = $this->getMockBuilder($class)->disableOriginalConstructor()->getMock();
-        $meta->method('getIdentifierValues')->willReturnCallback(fn (object $toCheck): string => $toCheck->getId());
+        $meta = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $meta->method('getIdentifierValues')->willReturnCallback(fn (object $toCheck): array => [$toCheck->getId()]);
 
-        $em = $this->createEmMock([], [get_class($translatable) => $meta]);
+        $em = $this->createEmMock([], [\get_class($translatable) => $meta]);
         $localeSwitcher = $this->createLocaleSwitcherMock();
         $classNameManager = $this->createClassNameManagerMock();
 
         $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
-        $repo->setCurrentTranslation([$translatable, $translatable1], [$translation, $translation1, $translation2]);
+        $repo->setCurrentTranslation(
+            [$translatable, $translatable1],
+            [$translation, $translation1, $translation2, $translation3, $translation4]
+        );
+    }
+
+    /**
+     * @psalm-suppress MixedMethodCall
+     */
+    public function testSetCurrentTranslationSingleItem(): void
+    {
+        $translationParent = $this->createTranslatableMock(Translatable::class, '1');
+        $translation = $this->createTranslationMock();
+        $translation->method('getTranslatable')->willReturn($translationParent);
+
+        $translatable = $this->createTranslatableMock(Translatable::class, '1');
+        $translatable->expects($this->once())
+            ->method('setCurrentTranslation')
+            ->with($this->identicalTo($translation))
+            ->willReturnSelf();
+
+        /** @var ClassMetadata&MockObject */
+        $meta = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $meta->method('getIdentifierValues')->willReturnCallback(fn (object $toCheck): array => [$toCheck->getId()]);
+
+        $em = $this->createEmMock([], [\get_class($translatable) => $meta]);
+        $localeSwitcher = $this->createLocaleSwitcherMock();
+        $classNameManager = $this->createClassNameManagerMock();
+
+        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
+        $repo->setCurrentTranslation($translatable, $translation);
     }
 
     /**
      * @psalm-param class-string $class
+     *
+     * @return Translatable&MockObject
      */
-    private function createTranslatableMock(string $class = Translatable::class, ?string $id = null): Translatable&MockObject
+    private function createTranslatableMock(string $class = Translatable::class, ?string $id = null): Translatable
     {
         /** @var Translatable&MockObject */
         $translatable = $this->getMockBuilder($class)
             ->addMethods(['getId'])
+            ->onlyMethods(['setCurrentTranslation'])
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -259,7 +306,10 @@ class TranslationRepositoryTest extends BaseCase
         return $translatable;
     }
 
-    private function createTranslationMock(): Translation&MockObject
+    /**
+     * @return Translation&MockObject
+     */
+    private function createTranslationMock(): Translation
     {
         /** @var Translation&MockObject */
         $translation = $this->getMockBuilder(Translation::class)
@@ -269,7 +319,7 @@ class TranslationRepositoryTest extends BaseCase
         return $translation;
     }
 
-    private function createLocaleMock(string $localeString = ''): Locale&MockObject
+    private function createLocaleMock(string $localeString = ''): Locale
     {
         /** @var Locale&MockObject */
         $locale = $this->getMockBuilder(Locale::class)
