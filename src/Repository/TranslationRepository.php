@@ -99,13 +99,15 @@ class TranslationRepository
         $translations = $translations instanceof Translation ? [$translations] : $translations;
 
         foreach ($items as $item) {
+            $currentTranslation = null;
             foreach ($translations as $translation) {
                 $parentTranslatable = $translation->getTranslatable();
                 if ($parentTranslatable !== null && $this->isTranslatablesEqual($item, $parentTranslatable)) {
-                    $item->setCurrentTranslation($translation);
+                    $currentTranslation = $translation;
                     break;
                 }
             }
+            $item->setCurrentTranslation($currentTranslation);
         }
     }
 

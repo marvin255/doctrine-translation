@@ -6,6 +6,7 @@ namespace Marvin255\DoctrineTranslationBundle\Tests\Repository;
 
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\QueryBuilder;
 use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
@@ -117,7 +118,7 @@ class TranslationRepositoryTest extends BaseCase
             [$reference[1]]
         );
 
-        $em = $this->createEmMock($qb, $qb1);
+        $em = $this->createEmMock([$qb, $qb1]);
         $localeSwitcher = $this->createLocaleSwitcherMock();
         $classNameManager = $this->createClassNameManagerMock($classNameMap);
 
@@ -204,20 +205,61 @@ class TranslationRepositoryTest extends BaseCase
         $this->assertSame([], $res);
     }
 
+    public function testSetCurrentTranslation(): void
+    {
+        $translationParent = $this->createTranslatableMock(Translatable::class, "0");
+        $translation = $this->createTranslationMock();
+        $translation->method('getTranslatable')->willReturn($translationParent);
+        
+        $translationParent1 = $this->createTranslatableMock(Translatable::class, "1");
+        $translation1 = $this->createTranslationMock();
+        $translation1->method('getTranslatable')->willReturn($translationParent1);
+        
+        $translation2 = $this->createTranslationMock();
+        $translation2->method('getTranslatable')->willReturn(null);
+
+        $translatable = $this->createTranslatableMock(Translatable::class, "1");
+        $translatable->expects($this->once())
+            ->method('setCurrentTranslation')
+            ->with($this->identicalTo($translationParent1))
+            ->willReturn($translatable);
+
+        $translatable1 = $this->createTranslatableMock();
+        $translatable1->expects($this->never())->method('setCurrentTranslation');
+
+        /** @var ClassMetadata&MockObject */
+        $meta = $this->getMockBuilder($class)->disableOriginalConstructor()->getMock();
+        $meta->method('getIdentifierValues')->willReturnCallback(fn (object $toCheck): string => $toCheck->getId());
+
+        $em = $this->createEmMock([], [get_class($translatable) => $meta]);
+        $localeSwitcher = $this->createLocaleSwitcherMock();
+        $classNameManager = $this->createClassNameManagerMock();
+
+        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
+        $repo->setCurrentTranslation([$translatable, $translatable1], [$translation, $translation1, $translation2]);
+    }
+
     /**
      * @psalm-param class-string $class
      */
-    private function createTranslatableMock(string $class = Translatable::class): Translatable
+    private function createTranslatableMock(string $class = Translatable::class, ?string $id = null): Translatable&MockObject
     {
         /** @var Translatable&MockObject */
         $translatable = $this->getMockBuilder($class)
+            ->addMethods(['getId'])
             ->disableOriginalConstructor()
             ->getMock();
+
+        if ($id !== null) {
+            $translatable->method('getId')->willReturn($id);
+        } else {
+            $translatable->expects($this->never())->method('getId');
+        }
 
         return $translatable;
     }
 
-    private function createTranslationMock(): Translation
+    private function createTranslationMock(): Translation&MockObject
     {
         /** @var Translation&MockObject */
         $translation = $this->getMockBuilder(Translation::class)
@@ -227,7 +269,7 @@ class TranslationRepositoryTest extends BaseCase
         return $translation;
     }
 
-    private function createLocaleMock(string $localeString = ''): Locale
+    private function createLocaleMock(string $localeString = ''): Locale&MockObject
     {
         /** @var Locale&MockObject */
         $locale = $this->getMockBuilder(Locale::class)
@@ -240,16 +282,36 @@ class TranslationRepositoryTest extends BaseCase
     }
 
     /**
-     * @psalm-param QueryBuilder[] $qb
+     * @psalm-param QueryBuilder[]|QueryBuilder $qb
+     * @psalm-param array<string, ClassMetadata> $meta
      */
-    private function createEmMock(...$qb): EntityManagerInterface
+    private function createEmMock(array|QueryBuilder $qb = [], array $meta = []): EntityManagerInterface
     {
         /** @var EntityManagerInterface&MockObject */
         $em = $this->getMockBuilder(EntityManagerInterface::class)->getMock();
 
-        $em->expects($this->exactly(\count($qb)))
-            ->method('createQueryBuilder')
-            ->willReturnOnConsecutiveCalls(...$qb);
+        $qb = $qb instanceof QueryBuilder ? [$qb] : $qb;
+        if (!empty($qb)) {
+            $em->expects($this->exactly(\count($qb)))
+                ->method('createQueryBuilder')
+                ->willReturnOnConsecutiveCalls(...$qb);
+        } else {
+            $em->expects($this->never())->method('createQueryBuilder');
+        }
+
+        if (!empty($meta)) {
+            $em->method('getClassMetadata')->willReturnCallback(
+                function (string $toCheck) use ($meta): ClassMetadata {
+                    if (!isset($meta[$toCheck])) {
+                        throw new \RuntimeException("Metadata for {$toCheck} not found");
+                    }
+
+                    return $meta[$toCheck];
+                }
+            );
+        } else {
+            $em->expects($this->never())->method('getClassMetadata');
+        }
 
         return $em;
     }
@@ -303,6 +365,8 @@ class TranslationRepositoryTest extends BaseCase
                 ->method('select')
                 ->with($this->equalTo($queryParts['select']))
                 ->willReturn($qb);
+        } else {
+            $qb->expects($this->never())->method('select');
         }
 
         if (isset($queryParts['from']) && \is_array($queryParts['from'])) {
@@ -313,6 +377,8 @@ class TranslationRepositoryTest extends BaseCase
                     $this->equalTo($queryParts['from'][1] ?? null)
                 )
                 ->willReturn($qb);
+        } else {
+            $qb->expects($this->never())->method('from');
         }
 
         if (isset($queryParts['where']) && \is_string($queryParts['where'])) {
@@ -339,7 +405,7 @@ class TranslationRepositoryTest extends BaseCase
                 ->withConsecutive(...$queryParts['setParameter'])
                 ->willReturn($qb);
         } else {
-            $qb->expects($this->never())->method('where');
+            $qb->expects($this->never())->method('setParameter');
         }
 
         /** @var AbstractQuery&MockObject */
