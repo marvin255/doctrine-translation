@@ -32,7 +32,19 @@ class ClassNameManager
     }
 
     /**
-     * Returns class name for translation related to set translatable.
+     * Returns class name for translation related to set translatable object.
+     *
+     * @psalm-return class-string
+     */
+    public function getTranslationClassForTranslatableEntity(object $translatable): string
+    {
+        $className = \get_class($translatable);
+
+        return $this->getTranslationClassForTranslatable($className);
+    }
+
+    /**
+     * Returns class name for translation related to set translatable class name.
      *
      * @psalm-return class-string
      */

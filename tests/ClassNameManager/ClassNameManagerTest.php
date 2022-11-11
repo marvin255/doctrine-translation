@@ -70,6 +70,43 @@ class ClassNameManagerTest extends BaseCase
     }
 
     /**
+     * @dataProvider provideGetTranslationClassForTranslatableEntity
+     */
+    public function testGetTranslationClassForTranslatableEntity(object $className, \Throwable|string $reference): void
+    {
+        $manager = new ClassNameManager();
+
+        if ($reference instanceof \Throwable) {
+            $this->expectException(\get_class($reference));
+            $this->expectDeprecationMessage($reference->getMessage());
+        }
+
+        $class = $manager->getTranslationClassForTranslatableEntity($className);
+
+        if (!($reference instanceof \Throwable)) {
+            $this->assertSame($reference, $class);
+        }
+    }
+
+    public function provideGetTranslationClassForTranslatableEntity(): array
+    {
+        return [
+            'correct object' => [
+                new MockTranslatableItem(),
+                MockTranslatableItemTranslation::class,
+            ],
+            'no transaction pair' => [
+                new MockNoPairTranslatable(),
+                new MappingException("Can't find"),
+            ],
+            'wrong transaction class' => [
+                new MockNonTranslation(),
+                new MappingException('must extend'),
+            ],
+        ];
+    }
+
+    /**
      * @dataProvider provideGetTranslationClassForTranslatable
      */
     public function testGetTranslationClassForTranslatable(string $className, \Throwable|string $reference): void

@@ -280,6 +280,10 @@ class TranslationRepositoryTest extends BaseCase
             fn (string $toCheck): string => $map[$toCheck] ?? ''
         );
 
+        $classNameManager->method('getTranslationClassForTranslatableEntity')->willReturnCallback(
+            fn (object $toCheck): string => $map[\get_class($toCheck)] ?? ''
+        );
+
         return $classNameManager;
     }
 
