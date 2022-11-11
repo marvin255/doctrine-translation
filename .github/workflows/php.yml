@@ -110,6 +110,9 @@ jobs:
       - name: Check that locale type is registered
         run: |
           $SYMFONY_FOLDER/bin/console debug:config doctrine dbal.types | grep "marvin255_locale"
+      - name: Check that locale repository is registered
+        run: |
+          $SYMFONY_FOLDER/bin/console debug:container "Marvin255\\DoctrineTranslationBundle\\Repository\\TranslationRepository"
       - name: Check that migrations for module are ok
         run: |
           cp ./.github/workflows/mock/Test.php $SYMFONY_FOLDER/src/Entity/Test.php
