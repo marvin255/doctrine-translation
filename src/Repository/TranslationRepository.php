@@ -36,6 +36,19 @@ class TranslationRepository
     }
 
     /**
+     * Searches and sets translations related for set list of items and current app locale.
+     *
+     * @param iterable<Translatable>|Translatable $items
+     */
+    public function findAndSetTranslationForCurrentLocale(iterable|Translatable $items): void
+    {
+        $this->setCurrentTranslation(
+            $items,
+            $this->findTranslationForCurrentLocale($items)
+        );
+    }
+
+    /**
      * Searches translations related for set list of items and current app locale.
      *
      * @param iterable<Translatable>|Translatable $items
@@ -47,6 +60,20 @@ class TranslationRepository
         $currentLocale = LocaleFactory::create($this->localeSwitcher->getLocale());
 
         return $this->findTranslations($items, $currentLocale);
+    }
+
+    /**
+     * Searches and sets translations related for set list of items and set locale.
+     *
+     * @param iterable<Translatable>|Translatable $items
+     * @param Locale                              $locale
+     */
+    public function findAndSetTranslationForLocale(iterable|Translatable $items, Locale $locale): void
+    {
+        $this->setCurrentTranslation(
+            $items,
+            $this->findTranslations($items, $locale)
+        );
     }
 
     /**
@@ -88,6 +115,30 @@ class TranslationRepository
     }
 
     /**
+     * Uses list of translations to set current translation for all translatable items.
+     *
+     * @param iterable<Translatable>|Translatable $items
+     * @param iterable<Translation>|Translation   $translations
+     */
+    public function setCurrentTranslation(iterable|Translatable $items, iterable|Translation $translations): void
+    {
+        $items = $items instanceof Translatable ? [$items] : $items;
+        $translations = $translations instanceof Translation ? [$translations] : $translations;
+
+        foreach ($items as $item) {
+            $currentTranslation = null;
+            foreach ($translations as $translation) {
+                $parentTranslatable = $translation->getTranslatable();
+                if ($parentTranslatable !== null && $this->isTranslatablesEqual($item, $parentTranslatable)) {
+                    $currentTranslation = $translation;
+                    break;
+                }
+            }
+            $item->setCurrentTranslation($currentTranslation);
+        }
+    }
+
+    /**
      * Groups translatable items by translation class for search.
      *
      * @param iterable<Translatable>|Translatable $items
@@ -96,14 +147,11 @@ class TranslationRepository
      */
     private function groupItemsByTranslationClass(iterable|Translatable $items): array
     {
-        if ($items instanceof Translatable) {
-            $items = [$items];
-        }
+        $items = $items instanceof Translatable ? [$items] : $items;
 
         $itemsByClasses = [];
         foreach ($items as $item) {
-            $itemClass = \get_class($item);
-            $translationClass = $this->classNameManager->getTranslationClassForTranslatable($itemClass);
+            $translationClass = $this->classNameManager->getTranslationClassForTranslatableEntity($item);
             $itemsByClasses[$translationClass][] = $item;
         }
 
@@ -119,9 +167,7 @@ class TranslationRepository
      */
     private function getLocaleStringsFromLocales(iterable|Locale $locales): array
     {
-        if ($locales instanceof Locale) {
-            $locales = [$locales];
-        }
+        $locales = $locales instanceof Locale ? [$locales] : $locales;
 
         $localesStrings = [];
         foreach ($locales as $locale) {
@@ -132,5 +178,24 @@ class TranslationRepository
         }
 
         return $localesStrings;
+    }
+
+    /**
+     * Compares two translatable items for equality.
+     */
+    private function isTranslatablesEqual(Translatable $a, Translatable $b): bool
+    {
+        $aClass = \get_class($a);
+        $bClass = \get_class($b);
+
+        if ($aClass !== $bClass) {
+            return false;
+        }
+
+        $meta = $this->em->getClassMetadata($aClass);
+        $aId = $meta->getIdentifierValues($a);
+        $bId = $meta->getIdentifierValues($b);
+
+        return $aId === $bId;
     }
 }
