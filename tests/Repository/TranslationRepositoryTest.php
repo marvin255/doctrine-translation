@@ -52,8 +52,8 @@ class TranslationRepositoryTest extends BaseCase
                 ],
             ],
             [$translation]
-        ); 
-        
+        );
+
         /** @var ClassMetadata&MockObject */
         $meta = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
         $meta->method('getIdentifierValues')->willReturnCallback(fn (object $toCheck): array => []);
@@ -106,6 +106,51 @@ class TranslationRepositoryTest extends BaseCase
         $res = $repo->findTranslationForCurrentLocale($translatables);
 
         $this->assertSame($reference, $res);
+    }
+
+    public function testFindAndSetTranslationForLocale(): void
+    {
+        $translationParent = $this->createTranslatableMock();
+        $translation = $this->createTranslationMock();
+        $translation->method('getTranslatable')->willReturn($translationParent);
+
+        $translatable = $this->createTranslatableMock();
+        $translatable->expects($this->once())
+            ->method('setCurrentTranslation')
+            ->with($this->identicalTo($translation))
+            ->willReturnSelf();
+
+        $classNameMap = [\get_class($translatable) => \get_class($translation)];
+        $localeString = 'en-US';
+
+        $locale = $this->createLocaleMock($localeString);
+
+        $qb = $this->createQueryBuilderMock(
+            [
+                'select' => TranslationRepository::QUERY_ALIAS,
+                'from' => [\get_class($translation), TranslationRepository::QUERY_ALIAS],
+                'where' => TranslationRepository::QUERY_ALIAS . '.' . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)',
+                'andWhere' => [
+                    [TranslationRepository::QUERY_ALIAS . '.' . Translation::LOCALE_FIELD_NAME . ' IN (:locales)'],
+                ],
+                'setParameter' => [
+                    ['translatables', [$translatable]],
+                    ['locales', [$localeString]],
+                ],
+            ],
+            [$translation]
+        );
+
+        /** @var ClassMetadata&MockObject */
+        $meta = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $meta->method('getIdentifierValues')->willReturnCallback(fn (object $toCheck): array => []);
+
+        $em = $this->createEmMock($qb, [\get_class($translatable) => $meta]);
+        $localeSwitcher = $this->createLocaleSwitcherMock();
+        $classNameManager = $this->createClassNameManagerMock($classNameMap);
+
+        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
+        $repo->findAndSetTranslationForLocale($translatable, $locale);
     }
 
     public function testFindTranslations(): void
