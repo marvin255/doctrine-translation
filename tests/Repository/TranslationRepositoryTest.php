@@ -23,6 +23,49 @@ use Symfony\Component\Translation\LocaleSwitcher;
  */
 class TranslationRepositoryTest extends BaseCase
 {
+    public function testFindAndSetTranslationForCurrentLocale(): void
+    {
+        $translationParent = $this->createTranslatableMock();
+        $translation = $this->createTranslationMock();
+        $translation->method('getTranslatable')->willReturn($translationParent);
+
+        $translatable = $this->createTranslatableMock();
+        $translatable->expects($this->once())
+            ->method('setCurrentTranslation')
+            ->with($this->identicalTo($translation))
+            ->willReturnSelf();
+
+        $classNameMap = [\get_class($translatable) => \get_class($translation)];
+        $localeString = 'en-US';
+
+        $qb = $this->createQueryBuilderMock(
+            [
+                'select' => TranslationRepository::QUERY_ALIAS,
+                'from' => [\get_class($translation), TranslationRepository::QUERY_ALIAS],
+                'where' => TranslationRepository::QUERY_ALIAS . '.' . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)',
+                'andWhere' => [
+                    [TranslationRepository::QUERY_ALIAS . '.' . Translation::LOCALE_FIELD_NAME . ' IN (:locales)'],
+                ],
+                'setParameter' => [
+                    ['translatables', [$translatable]],
+                    ['locales', [$localeString]],
+                ],
+            ],
+            [$translation]
+        ); 
+        
+        /** @var ClassMetadata&MockObject */
+        $meta = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
+        $meta->method('getIdentifierValues')->willReturnCallback(fn (object $toCheck): array => []);
+
+        $em = $this->createEmMock($qb, [\get_class($translatable) => $meta]);
+        $localeSwitcher = $this->createLocaleSwitcherMock($localeString);
+        $classNameManager = $this->createClassNameManagerMock($classNameMap);
+
+        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
+        $repo->findAndSetTranslationForCurrentLocale($translatable);
+    }
+
     public function testFindTranslationForCurrentLocale(): void
     {
         $reference = [
@@ -414,9 +457,9 @@ class TranslationRepositoryTest extends BaseCase
             $qb->expects($this->once())
                 ->method('select')
                 ->with($this->equalTo($queryParts['select']))
-                ->willReturn($qb);
+                ->willReturnSelf();
         } else {
-            $qb->expects($this->never())->method('select');
+            $qb->method('select')->willReturnSelf();
         }
 
         if (isset($queryParts['from']) && \is_array($queryParts['from'])) {
@@ -426,36 +469,36 @@ class TranslationRepositoryTest extends BaseCase
                     $this->equalTo($queryParts['from'][0] ?? null),
                     $this->equalTo($queryParts['from'][1] ?? null)
                 )
-                ->willReturn($qb);
+                ->willReturnSelf();
         } else {
-            $qb->expects($this->never())->method('from');
+            $qb->method('from')->willReturnSelf();
         }
 
         if (isset($queryParts['where']) && \is_string($queryParts['where'])) {
             $qb->expects($this->once())
                 ->method('where')
                 ->with($this->equalTo($queryParts['where']))
-                ->willReturn($qb);
+                ->willReturnSelf();
         } else {
-            $qb->expects($this->never())->method('where');
+            $qb->method('where')->willReturnSelf();
         }
 
         if (isset($queryParts['andWhere']) && \is_array($queryParts['andWhere'])) {
             $qb->expects($this->exactly(\count($queryParts['andWhere'])))
                 ->method('andWhere')
                 ->withConsecutive(...$queryParts['andWhere'])
-                ->willReturn($qb);
+                ->willReturnSelf();
         } else {
-            $qb->expects($this->never())->method('andWhere');
+            $qb->method('andWhere')->willReturnSelf();
         }
 
         if (isset($queryParts['setParameter']) && \is_array($queryParts['setParameter'])) {
             $qb->expects($this->exactly(\count($queryParts['setParameter'])))
                 ->method('setParameter')
                 ->withConsecutive(...$queryParts['setParameter'])
-                ->willReturn($qb);
+                ->willReturnSelf();
         } else {
-            $qb->expects($this->never())->method('setParameter');
+            $qb->method('setParameter')->willReturnSelf();
         }
 
         /** @var AbstractQuery&MockObject */
