@@ -317,6 +317,14 @@ class TranslationRepositoryTest extends BaseCase
         $translation4 = $this->createTranslationMock();
         $translation4->method('getTranslatable')->willReturn($translationParent4);
 
+        $translationParent5 = $this->createTranslatableMock(Translatable::class, '5');
+        $translation5 = $this->createTranslationMock();
+        $translation5->method('getTranslatable')->willReturn($translationParent5);
+        $translationParent5->expects($this->once())
+            ->method('setCurrentTranslation')
+            ->with($this->identicalTo($translation5))
+            ->willReturnSelf();
+
         $translatable = $this->createTranslatableMock(Translatable::class, '1');
         $translatable->expects($this->once())
             ->method('setCurrentTranslation')
@@ -339,8 +347,8 @@ class TranslationRepositoryTest extends BaseCase
 
         $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
         $repo->setCurrentTranslation(
-            [$translatable, $translatable1],
-            [$translation, $translation1, $translation2, $translation3, $translation4]
+            [$translatable, $translatable1, $translationParent5],
+            [$translation, $translation1, $translation2, $translation3, $translation4, $translation5]
         );
     }
 

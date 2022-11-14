@@ -185,6 +185,10 @@ class TranslationRepository
      */
     private function isTranslatablesEqual(Translatable $a, Translatable $b): bool
     {
+        if ($a === $b) {
+            return true;
+        }
+
         $aClass = \get_class($a);
         $bClass = \get_class($b);
 
