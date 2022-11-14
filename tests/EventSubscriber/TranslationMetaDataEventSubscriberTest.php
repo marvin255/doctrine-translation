@@ -41,8 +41,8 @@ class TranslationMetaDataEventSubscriberTest extends EventSubscriberCase
                 'uniqueConstraints' => [
                     $indexName => [
                         'columns' => [
-                            Translation::LOCALE_COLUMN_NAME,
                             Translation::TRANSLATABLE_COLUMN_NAME,
+                            Translation::LOCALE_COLUMN_NAME,
                         ],
                     ],
                 ],

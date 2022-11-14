@@ -56,8 +56,8 @@ final class TranslationMetaDataEventSubscriber implements EventSubscriberInterfa
         $indexName = strtolower(str_replace('\\', '_', $metadata->getName())) . '_translation_idx';
         $metadata->table['uniqueConstraints'][$indexName] = [
             'columns' => [
-                Translation::LOCALE_COLUMN_NAME,
                 Translation::TRANSLATABLE_COLUMN_NAME,
+                Translation::LOCALE_COLUMN_NAME,
             ],
         ];
     }
