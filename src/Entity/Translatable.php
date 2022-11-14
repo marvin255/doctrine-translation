@@ -13,19 +13,19 @@ use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 /**
  * Interface for item that can have translations.
  *
- * @template R of Translation
+ * @psalm-template R of Translation
  */
 #[MappedSuperclass]
 abstract class Translatable
 {
     /**
-     * @var Collection<int, R>
+     * @psalm-var Collection<int, R>
      */
     #[OneToMany(targetEntity: Translation::class, mappedBy: 'translatable', orphanRemoval: true)]
     protected Collection $translations;
 
     /**
-     * @var R|null
+     * @psalm-var R|null
      */
     private ?Translation $currentTranslation = null;
 
@@ -37,7 +37,7 @@ abstract class Translatable
     /**
      * Returns collection of all translations for this item.
      *
-     * @return R[]
+     * @psalm-return R[]
      */
     public function getTranslations(): array
     {
@@ -57,7 +57,7 @@ abstract class Translatable
     /**
      * Add new translation.
      *
-     * @param R $translation
+     * @psalm-param R $translation
      */
     public function addTranslation(Translation $translation): self
     {
@@ -69,7 +69,7 @@ abstract class Translatable
     /**
      * Remove translation.
      *
-     * @param R $translation
+     * @psalm-param R $translation
      */
     public function removeTranslation(Translation $translation): self
     {
@@ -81,7 +81,7 @@ abstract class Translatable
     /**
      * Search and return translation for set locale.
      *
-     * @return R|null
+     * @psalm-return R|null
      */
     public function findTranslationByLocale(Locale $locale): ?Translation
     {
@@ -95,7 +95,7 @@ abstract class Translatable
     /**
      * Sets new current translation.
      *
-     * @param R|null $translation
+     * @psalm-param R|null $translation
      */
     public function setCurrentTranslation(?Translation $translation): self
     {
@@ -107,7 +107,7 @@ abstract class Translatable
     /**
      * Returns current translation if it's set.
      *
-     * @return R|null
+     * @psalm-return R|null
      */
     public function getCurrentTranslation(): ?Translation
     {

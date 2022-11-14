@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Marvin255\DoctrineTranslationBundle\Entity;
 
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\GeneratedValue;
 use Doctrine\ORM\Mapping\Id;
@@ -17,25 +16,24 @@ use Marvin255\DoctrineTranslationBundle\Locale\LocaleType;
 /**
  * Mapped superclass for doctrine translation entity.
  *
- * @template P of Translatable
+ * @psalm-template P of Translatable
  */
 #[MappedSuperclass]
 abstract class Translation
 {
-    public const ID_COLUMN_NAME = 'id';
     public const LOCALE_FIELD_NAME = 'locale';
     public const LOCALE_COLUMN_NAME = 'locale';
     public const TRANSLATABLE_FIELD_NAME = 'translatable';
     public const TRANSLATABLE_COLUMN_NAME = 'translatable_id';
 
-    #[Id, GeneratedValue, Column(name: self::ID_COLUMN_NAME, type: Types::INTEGER, nullable: false)]
+    #[Id, GeneratedValue, Column(name: 'id', type: 'integer', nullable: false)]
     protected ?int $id = null;
 
     #[Column(name: self::LOCALE_COLUMN_NAME, type: LocaleType::LOCALE_TYPE, nullable: false, length: 15)]
     protected ?Locale $locale = null;
 
     /**
-     * @var P|null
+     * @psalm-var P|null
      */
     #[ManyToOne(inversedBy: 'translations')]
     #[JoinColumn(name: self::TRANSLATABLE_COLUMN_NAME, nullable: false)]
@@ -70,7 +68,7 @@ abstract class Translation
     /**
      * Returns parent object for this translation.
      *
-     * @return P|null
+     * @psalm-return P|null
      */
     public function getTranslatable(): ?Translatable
     {
@@ -80,7 +78,7 @@ abstract class Translation
     /**
      * Returns parent object related to this translation.
      *
-     * @param P $translatable
+     * @psalm-param P $translatable
      */
     public function setTranslatable(Translatable $translatable): self
     {
