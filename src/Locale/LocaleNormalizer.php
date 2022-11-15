@@ -17,6 +17,8 @@ class LocaleNormalizer implements DenormalizerInterface, NormalizerInterface
     /**
      * {@inheritDoc}
      *
+     * @return array|string|int|float|bool|\ArrayObject|null
+     *
      * @throws InvalidArgumentException
      */
     public function normalize(mixed $object, string $format = null, array $context = [])
@@ -31,13 +33,15 @@ class LocaleNormalizer implements DenormalizerInterface, NormalizerInterface
     /**
      * {@inheritDoc}
      */
-    public function supportsNormalization(mixed $data, string $format = null): bool
+    public function supportsNormalization(mixed $data, string $format = null, array $context = []): bool
     {
         return $data instanceof Locale;
     }
 
     /**
      * {@inheritDoc}
+     *
+     * @return mixed
      *
      * @throws NotNormalizableValueException
      */
@@ -59,7 +63,7 @@ class LocaleNormalizer implements DenormalizerInterface, NormalizerInterface
     /**
      * {@inheritDoc}
      */
-    public function supportsDenormalization(mixed $data, string $type, string $format = null): bool
+    public function supportsDenormalization(mixed $data, string $type, string $format = null, array $context = []): bool
     {
         return Locale::class === $type;
     }
