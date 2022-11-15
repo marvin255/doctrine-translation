@@ -21,3 +21,7 @@ services:
       - '@doctrine.orm.entity_manager'
       - '@translation.locale_switcher'
       - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
+
+  Marvin255\DoctrineTranslationBundle\Locale\LocaleNormalizer:
+    class: Marvin255\DoctrineTranslationBundle\Locale\LocaleNormalizer
+    tags: ['serializer.normalizer', 'serializer.denormalizer']
