@@ -163,4 +163,30 @@ class LocaleTest extends BaseCase
             ],
         ];
     }
+
+    /**
+     * @dataProvider provideToString
+     */
+    public function testToString(string $localeString, string $reference): void
+    {
+        $locale = new Locale($localeString);
+
+        $result = (string) $locale;
+
+        $this->assertSame($reference, $result);
+    }
+
+    public function provideToString(): array
+    {
+        return [
+            'full locale' => [
+                'en-US',
+                'en-US',
+            ],
+            'short locale' => [
+                'en',
+                'en',
+            ],
+        ];
+    }
 }

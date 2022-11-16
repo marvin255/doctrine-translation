@@ -51,4 +51,9 @@ class Locale
     {
         return $this->full === $locale->getFull();
     }
+
+    public function __toString(): string
+    {
+        return $this->full;
+    }
 }
