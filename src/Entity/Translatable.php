@@ -41,6 +41,10 @@ abstract class Translatable
      */
     public function getTranslations(): array
     {
+        if ($this->currentTranslation !== null) {
+            return [$this->currentTranslation];
+        }
+
         return $this->translations->toArray();
     }
 
@@ -102,15 +106,5 @@ abstract class Translatable
         $this->currentTranslation = $translation;
 
         return $this;
-    }
-
-    /**
-     * Returns current translation if it's set.
-     *
-     * @psalm-return R|null
-     */
-    public function getCurrentTranslation(): ?Translation
-    {
-        return $this->currentTranslation;
     }
 }
