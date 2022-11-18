@@ -8,7 +8,6 @@ use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\QueryBuilder;
-use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
 use Marvin255\DoctrineTranslationBundle\Locale\Locale;
@@ -472,27 +471,6 @@ class TranslationRepositoryTest extends BaseCase
         $localeSwitcher->method('getLocale')->willReturn($locale);
 
         return $localeSwitcher;
-    }
-
-    /**
-     * @psalm-param array<string, string> $map
-     */
-    private function createClassNameManagerMock(array $map = []): ClassNameManager
-    {
-        /** @var ClassNameManager&MockObject */
-        $classNameManager = $this->getMockBuilder(ClassNameManager::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $classNameManager->method('getTranslationClassForTranslatable')->willReturnCallback(
-            fn (string $toCheck): string => $map[$toCheck] ?? ''
-        );
-
-        $classNameManager->method('getTranslationClassForTranslatableEntity')->willReturnCallback(
-            fn (object $toCheck): string => $map[\get_class($toCheck)] ?? ''
-        );
-
-        return $classNameManager;
     }
 
     /**
