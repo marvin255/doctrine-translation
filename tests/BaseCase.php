@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Marvin255\DoctrineTranslationBundle\Tests;
 
 use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
+use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -13,6 +14,18 @@ use PHPUnit\Framework\TestCase;
  */
 abstract class BaseCase extends TestCase
 {
+    protected function createLocaleMock(string $localeString = ''): Locale
+    {
+        /** @var Locale&MockObject */
+        $locale = $this->getMockBuilder(Locale::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $locale->method('getFull')->willReturn($localeString);
+
+        return $locale;
+    }
+
     /**
      * @psalm-param array<string, string> $translatableTranslationPairs
      *
@@ -39,6 +52,10 @@ abstract class BaseCase extends TestCase
 
         $manager->method('getTranslatableClassForTranslation')->willReturnCallback(
             fn (string $translation): string => array_search($translation, $translatableTranslationPairs) ?: ''
+        );
+
+        $manager->method('getTranslationClassForTranslatableEntity')->willReturnCallback(
+            fn (object $entity): string => $translatableTranslationPairs[\get_class($entity)] ?? ''
         );
 
         return $manager;

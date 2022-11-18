@@ -10,7 +10,6 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\QueryBuilder;
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
-use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 use Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository;
 use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
 use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslatableItem;
@@ -412,18 +411,6 @@ class TranslationRepositoryTest extends BaseCase
             ->getMock();
 
         return $translation;
-    }
-
-    private function createLocaleMock(string $localeString = ''): Locale
-    {
-        /** @var Locale&MockObject */
-        $locale = $this->getMockBuilder(Locale::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $locale->method('getFull')->willReturn($localeString);
-
-        return $locale;
     }
 
     /**
