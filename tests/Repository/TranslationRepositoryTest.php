@@ -31,7 +31,7 @@ class TranslationRepositoryTest extends BaseCase
 
         $translatable = $this->createTranslatableMock();
         $translatable->expects($this->once())
-            ->method('setCurrentTranslation')
+            ->method('lockCurrentTranslation')
             ->with($this->identicalTo($translation))
             ->willReturnSelf();
 
@@ -116,7 +116,7 @@ class TranslationRepositoryTest extends BaseCase
 
         $translatable = $this->createTranslatableMock();
         $translatable->expects($this->once())
-            ->method('setCurrentTranslation')
+            ->method('lockCurrentTranslation')
             ->with($this->identicalTo($translation))
             ->willReturnSelf();
 
@@ -321,19 +321,19 @@ class TranslationRepositoryTest extends BaseCase
         $translation5 = $this->createTranslationMock();
         $translation5->method('getTranslatable')->willReturn($translationParent5);
         $translationParent5->expects($this->once())
-            ->method('setCurrentTranslation')
+            ->method('lockCurrentTranslation')
             ->with($this->identicalTo($translation5))
             ->willReturnSelf();
 
         $translatable = $this->createTranslatableMock(Translatable::class, '1');
         $translatable->expects($this->once())
-            ->method('setCurrentTranslation')
+            ->method('lockCurrentTranslation')
             ->with($this->identicalTo($translation1))
             ->willReturnSelf();
 
         $translatable1 = $this->createTranslatableMock(Translatable::class, '2');
         $translatable1->expects($this->once())
-            ->method('setCurrentTranslation')
+            ->method('lockCurrentTranslation')
             ->with($this->equalTo(null))
             ->willReturnSelf();
 
@@ -363,7 +363,7 @@ class TranslationRepositoryTest extends BaseCase
 
         $translatable = $this->createTranslatableMock(Translatable::class, '1');
         $translatable->expects($this->once())
-            ->method('setCurrentTranslation')
+            ->method('lockCurrentTranslation')
             ->with($this->identicalTo($translation))
             ->willReturnSelf();
 
@@ -389,7 +389,7 @@ class TranslationRepositoryTest extends BaseCase
         /** @var Translatable&MockObject */
         $translatable = $this->getMockBuilder($class)
             ->addMethods(['getId'])
-            ->onlyMethods(['setCurrentTranslation'])
+            ->onlyMethods(['lockCurrentTranslation'])
             ->disableOriginalConstructor()
             ->getMock();
 

@@ -119,7 +119,7 @@ class TranslatableTest extends BaseCase
         $this->assertNull($model->findTranslationByLocale($localeToSearch));
     }
 
-    public function testSetGetCurrentTranslation(): void
+    public function testLockCurrentTranslation(): void
     {
         /** @var Translation */
         $translation = $this->getMockBuilder(Translation::class)->getMock();
@@ -131,7 +131,7 @@ class TranslatableTest extends BaseCase
         $model = $this->getMockForAbstractClass(Translatable::class);
         $model->addTranslation($translation1);
 
-        $this->assertSame($model, $model->setCurrentTranslation($translation));
+        $this->assertSame($model, $model->lockCurrentTranslation($translation));
         $this->assertSame([$translation], $model->getTranslations());
     }
 }

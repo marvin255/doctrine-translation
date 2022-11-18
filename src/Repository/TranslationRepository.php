@@ -134,7 +134,7 @@ class TranslationRepository
                     break;
                 }
             }
-            $item->setCurrentTranslation($currentTranslation);
+            $item->lockCurrentTranslation($currentTranslation);
         }
     }
 

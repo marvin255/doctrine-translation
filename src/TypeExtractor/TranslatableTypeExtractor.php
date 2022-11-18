@@ -30,22 +30,32 @@ class TranslatableTypeExtractor implements PropertyTypeExtractorInterface
      */
     public function getTypes(string $class, string $property, array $context = [])
     {
-        if ($property !== Translatable::TRANSLATIONS_FIELD_NAME || !$this->classNameManager->isTranslatableClass($class)) {
+        if (!$this->classNameManager->isTranslatableClass($class)) {
             return null;
         }
 
         $translationClass = $this->classNameManager->getTranslationClassForTranslatable($class);
-        $keyType = new Type(Type::BUILTIN_TYPE_INT, false);
-        $valueType = new Type(Type::BUILTIN_TYPE_OBJECT, false, $translationClass);
-        $collectionType = new Type(
-            Type::BUILTIN_TYPE_OBJECT,
-            false,
-            Collection::class,
-            true,
-            $keyType,
-            $valueType
-        );
 
-        return [$collectionType];
+        $type = null;
+        if ($property === Translatable::CURRENT_TRANSLATION_FIELD_NAME) {
+            $type = [
+                new Type(Type::BUILTIN_TYPE_OBJECT, false, $translationClass),
+            ];
+        } elseif ($property === Translatable::TRANSLATIONS_FIELD_NAME) {
+            $keyType = new Type(Type::BUILTIN_TYPE_INT, false);
+            $valueType = new Type(Type::BUILTIN_TYPE_OBJECT, false, $translationClass);
+            $type = [
+                new Type(
+                    Type::BUILTIN_TYPE_OBJECT,
+                    false,
+                    Collection::class,
+                    true,
+                    $keyType,
+                    $valueType
+                ),
+            ];
+        }
+
+        return $type;
     }
 }

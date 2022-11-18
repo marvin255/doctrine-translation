@@ -31,3 +31,9 @@ services:
     arguments:
       - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
     tags: ['property_info.type_extractor']
+
+  Marvin255\DoctrineTranslationBundle\TypeExtractor\TranslationTypeExtractor:
+    class: Marvin255\DoctrineTranslationBundle\TypeExtractor\TranslationTypeExtractor
+    arguments:
+      - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
+    tags: ['property_info.type_extractor']
