@@ -22,6 +22,9 @@ abstract class BaseCase extends TestCase
             ->getMock();
 
         $locale->method('getFull')->willReturn($localeString);
+        $locale->method('equals')->willReturnCallback(
+            fn (Locale $toTest): bool => $toTest->getFull() === $localeString
+        );
 
         return $locale;
     }
