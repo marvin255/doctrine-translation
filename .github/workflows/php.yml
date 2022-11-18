@@ -116,6 +116,12 @@ jobs:
       - name: Check that locale normalizer is registered
         run: |
           $SYMFONY_FOLDER/bin/console debug:container "Marvin255\\DoctrineTranslationBundle\\Locale\\LocaleNormalizer"
+      - name: Check that translatable type extractor is registered
+        run: |
+          $SYMFONY_FOLDER/bin/console debug:container "Marvin255\\DoctrineTranslationBundle\\TypeExtractor\\TranslatableTypeExtractor"
+      - name: Check that translation type extractor is registered
+        run: |
+          $SYMFONY_FOLDER/bin/console debug:container "Marvin255\\DoctrineTranslationBundle\\TypeExtractor\\TranslationTypeExtractor"
       - name: Check that migrations for module are ok
         run: |
           cp ./.github/workflows/mock/Test.php $SYMFONY_FOLDER/src/Entity/Test.php
