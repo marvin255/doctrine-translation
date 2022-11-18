@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Marvin255\DoctrineTranslationBundle\Tests;
 
 use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
+use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
+use Marvin255\DoctrineTranslationBundle\Entity\Translation;
 use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -14,6 +16,20 @@ use PHPUnit\Framework\TestCase;
  */
 abstract class BaseCase extends TestCase
 {
+    protected function createTranslationMock(?Translatable $translatable = null, ?Locale $locale = null, ?int $id = null): Translation
+    {
+        /** @var Translation&MockObject */
+        $translation = $this->getMockBuilder(Translation::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $translation->method('getTranslatable')->willReturn($translatable);
+        $translation->method('getLocale')->willReturn($locale);
+        $translation->method('getId')->willReturn($id);
+
+        return $translation;
+    }
+
     protected function createLocaleMock(string $localeString = ''): Locale
     {
         /** @var Locale&MockObject */

@@ -24,8 +24,7 @@ class TranslationRepositoryTest extends BaseCase
     public function testFindAndSetTranslationForCurrentLocale(): void
     {
         $translationParent = $this->createTranslatableMock();
-        $translation = $this->createTranslationMock();
-        $translation->method('getTranslatable')->willReturn($translationParent);
+        $translation = $this->createTranslationMock($translationParent);
 
         $translatable = $this->createTranslatableMock();
         $translatable->expects($this->once())
@@ -109,8 +108,7 @@ class TranslationRepositoryTest extends BaseCase
     public function testFindAndSetTranslationForLocale(): void
     {
         $translationParent = $this->createTranslatableMock();
-        $translation = $this->createTranslationMock();
-        $translation->method('getTranslatable')->willReturn($translationParent);
+        $translation = $this->createTranslationMock($translationParent);
 
         $translatable = $this->createTranslatableMock();
         $translatable->expects($this->once())
@@ -297,27 +295,21 @@ class TranslationRepositoryTest extends BaseCase
     public function testSetCurrentTranslation(): void
     {
         $translationParent = $this->createTranslatableMock(Translatable::class, '0');
-        $translation = $this->createTranslationMock();
-        $translation->method('getTranslatable')->willReturn($translationParent);
+        $translation = $this->createTranslationMock($translationParent);
 
         $translationParent1 = $this->createTranslatableMock(Translatable::class, '1');
-        $translation1 = $this->createTranslationMock();
-        $translation1->method('getTranslatable')->willReturn($translationParent1);
+        $translation1 = $this->createTranslationMock($translationParent1);
 
         $translation2 = $this->createTranslationMock();
-        $translation2->method('getTranslatable')->willReturn(null);
 
         $translationParent3 = $this->createTranslatableMock(Translatable::class, '1');
-        $translation3 = $this->createTranslationMock();
-        $translation3->method('getTranslatable')->willReturn($translationParent3);
+        $translation3 = $this->createTranslationMock($translationParent3);
 
         $translationParent4 = $this->createTranslatableMock(MockTranslatableItem::class, '2');
-        $translation4 = $this->createTranslationMock();
-        $translation4->method('getTranslatable')->willReturn($translationParent4);
+        $translation4 = $this->createTranslationMock($translationParent4);
 
         $translationParent5 = $this->createTranslatableMock(Translatable::class, '5');
-        $translation5 = $this->createTranslationMock();
-        $translation5->method('getTranslatable')->willReturn($translationParent5);
+        $translation5 = $this->createTranslationMock($translationParent5);
         $translationParent5->expects($this->once())
             ->method('lockCurrentTranslation')
             ->with($this->identicalTo($translation5))
@@ -356,8 +348,7 @@ class TranslationRepositoryTest extends BaseCase
     public function testSetCurrentTranslationSingleItem(): void
     {
         $translationParent = $this->createTranslatableMock(Translatable::class, '1');
-        $translation = $this->createTranslationMock();
-        $translation->method('getTranslatable')->willReturn($translationParent);
+        $translation = $this->createTranslationMock($translationParent);
 
         $translatable = $this->createTranslatableMock(Translatable::class, '1');
         $translatable->expects($this->once())
@@ -398,19 +389,6 @@ class TranslationRepositoryTest extends BaseCase
         }
 
         return $translatable;
-    }
-
-    /**
-     * @return Translation&MockObject
-     */
-    private function createTranslationMock(): Translation
-    {
-        /** @var Translation&MockObject */
-        $translation = $this->getMockBuilder(Translation::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        return $translation;
     }
 
     /**
