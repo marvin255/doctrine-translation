@@ -6,15 +6,11 @@ namespace Marvin255\DoctrineTranslationBundle\Tests\Repository;
 
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\QueryBuilder;
-use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
-use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
-use Marvin255\DoctrineTranslationBundle\Locale\Locale;
+use Marvin255\DoctrineTranslationBundle\Repository\EntityComparator;
 use Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository;
 use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
-use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslatableItem;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\Translation\LocaleSwitcher;
 
@@ -23,84 +19,70 @@ use Symfony\Component\Translation\LocaleSwitcher;
  */
 class TranslationRepositoryTest extends BaseCase
 {
+    public const TRANSLATABLES_WHERE = TranslationRepository::QUERY_ALIAS . '.' . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)';
+    public const LOCALES_WHERE = [[TranslationRepository::QUERY_ALIAS . '.' . Translation::LOCALE_FIELD_NAME . ' IN (:locales)']];
+
     public function testFindAndSetTranslationForCurrentLocale(): void
     {
         $translationParent = $this->createTranslatableMock();
-        $translation = $this->createTranslationMock();
-        $translation->method('getTranslatable')->willReturn($translationParent);
-
-        $translatable = $this->createTranslatableMock();
-        $translatable->expects($this->once())
-            ->method('setCurrentTranslation')
-            ->with($this->identicalTo($translation))
-            ->willReturnSelf();
-
-        $classNameMap = [\get_class($translatable) => \get_class($translation)];
-        $localeString = 'en-US';
+        $translation = $this->createTranslationMock($translationParent);
+        $translatable = $this->createTranslatableMock($translation);
 
         $qb = $this->createQueryBuilderMock(
             [
                 'select' => TranslationRepository::QUERY_ALIAS,
-                'from' => [\get_class($translation), TranslationRepository::QUERY_ALIAS],
-                'where' => TranslationRepository::QUERY_ALIAS . '.' . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)',
-                'andWhere' => [
-                    [TranslationRepository::QUERY_ALIAS . '.' . Translation::LOCALE_FIELD_NAME . ' IN (:locales)'],
-                ],
+                'from' => [self::BASE_TRANSLATION_CLASS, TranslationRepository::QUERY_ALIAS],
+                'where' => self::TRANSLATABLES_WHERE,
+                'andWhere' => self::LOCALES_WHERE,
                 'setParameter' => [
                     ['translatables', [$translatable]],
-                    ['locales', [$localeString]],
+                    ['locales', self::BASE_LOCALE_ARRAY],
                 ],
             ],
             [$translation]
         );
 
-        /** @var ClassMetadata&MockObject */
-        $meta = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
-        $meta->method('getIdentifierValues')->willReturnCallback(fn (object $toCheck): array => []);
+        $em = $this->createEmMock($qb);
+        $localeSwitcher = $this->createLocaleSwitcherMock();
+        $classNameManager = $this->createBasicClassNameManagerMock($translatable, $translation);
+        $comparator = $this->createEntityComparatorMock($translationParent, $translatable);
 
-        $em = $this->createEmMock($qb, [\get_class($translatable) => $meta]);
-        $localeSwitcher = $this->createLocaleSwitcherMock($localeString);
-        $classNameManager = $this->createClassNameManagerMock($classNameMap);
-
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
+        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager, $comparator);
         $repo->findAndSetTranslationForCurrentLocale($translatable);
     }
 
     public function testFindTranslationForCurrentLocale(): void
     {
+        $translatable = $this->createTranslatableMock();
+        $translatable1 = $this->createTranslatableMock();
+        $translatables = [$translatable, $translatable1];
         $reference = [
             $this->createTranslationMock(),
             $this->createTranslationMock(),
         ];
-        $translatable = $this->createTranslatableMock();
-        $translatable1 = $this->createTranslatableMock();
-        $translationClass = 'translation';
-        $classNameMap = [
-            \get_class($translatable) => $translationClass,
-            \get_class($translatable1) => $translationClass,
-        ];
-        $translatables = [$translatable, $translatable1];
-        $localeString = 'en-US';
 
         $qb = $this->createQueryBuilderMock(
             [
                 'select' => TranslationRepository::QUERY_ALIAS,
-                'from' => [$translationClass, TranslationRepository::QUERY_ALIAS],
-                'where' => TranslationRepository::QUERY_ALIAS . '.' . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)',
-                'andWhere' => [
-                    [TranslationRepository::QUERY_ALIAS . '.' . Translation::LOCALE_FIELD_NAME . ' IN (:locales)'],
-                ],
+                'from' => [self::BASE_TRANSLATION_CLASS, TranslationRepository::QUERY_ALIAS],
+                'where' => self::TRANSLATABLES_WHERE,
+                'andWhere' => self::LOCALES_WHERE,
                 'setParameter' => [
                     ['translatables', $translatables],
-                    ['locales', [$localeString]],
+                    ['locales', self::BASE_LOCALE_ARRAY],
                 ],
             ],
             $reference
         );
 
         $em = $this->createEmMock($qb);
-        $localeSwitcher = $this->createLocaleSwitcherMock($localeString);
-        $classNameManager = $this->createClassNameManagerMock($classNameMap);
+        $localeSwitcher = $this->createLocaleSwitcherMock();
+        $classNameManager = $this->createClassNameManagerMock(
+            self::BASE_CLASS_NAMES_MAP,
+            [
+                self::BASE_TRANSLATABLE_CLASS => $translatables,
+            ]
+        );
 
         $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
         $res = $repo->findTranslationForCurrentLocale($translatables);
@@ -111,77 +93,57 @@ class TranslationRepositoryTest extends BaseCase
     public function testFindAndSetTranslationForLocale(): void
     {
         $translationParent = $this->createTranslatableMock();
-        $translation = $this->createTranslationMock();
-        $translation->method('getTranslatable')->willReturn($translationParent);
-
-        $translatable = $this->createTranslatableMock();
-        $translatable->expects($this->once())
-            ->method('setCurrentTranslation')
-            ->with($this->identicalTo($translation))
-            ->willReturnSelf();
-
-        $classNameMap = [\get_class($translatable) => \get_class($translation)];
-        $localeString = 'en-US';
-
-        $locale = $this->createLocaleMock($localeString);
+        $translation = $this->createTranslationMock($translationParent);
+        $translatable = $this->createTranslatableMock($translation);
+        $locale = $this->createLocaleMock();
 
         $qb = $this->createQueryBuilderMock(
             [
                 'select' => TranslationRepository::QUERY_ALIAS,
-                'from' => [\get_class($translation), TranslationRepository::QUERY_ALIAS],
-                'where' => TranslationRepository::QUERY_ALIAS . '.' . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)',
-                'andWhere' => [
-                    [TranslationRepository::QUERY_ALIAS . '.' . Translation::LOCALE_FIELD_NAME . ' IN (:locales)'],
-                ],
+                'from' => [self::BASE_TRANSLATION_CLASS, TranslationRepository::QUERY_ALIAS],
+                'where' => self::TRANSLATABLES_WHERE,
+                'andWhere' => self::LOCALES_WHERE,
                 'setParameter' => [
                     ['translatables', [$translatable]],
-                    ['locales', [$localeString]],
+                    ['locales', self::BASE_LOCALE_ARRAY],
                 ],
             ],
             [$translation]
         );
 
-        /** @var ClassMetadata&MockObject */
-        $meta = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
-        $meta->method('getIdentifierValues')->willReturnCallback(fn (object $toCheck): array => []);
-
-        $em = $this->createEmMock($qb, [\get_class($translatable) => $meta]);
+        $em = $this->createEmMock($qb);
         $localeSwitcher = $this->createLocaleSwitcherMock();
-        $classNameManager = $this->createClassNameManagerMock($classNameMap);
+        $classNameManager = $this->createBasicClassNameManagerMock($translatable, $translation);
+        $comparator = $this->createEntityComparatorMock($translationParent, $translatable);
 
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
+        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager, $comparator);
         $repo->findAndSetTranslationForLocale($translatable, $locale);
     }
 
     public function testFindTranslations(): void
     {
+        $translationClass = 'translation';
+        $translationClass1 = 'translation1';
+        $translatable = $this->createTranslatableMock();
+        $translatable1 = $this->createTranslatableMock();
+        $translatable2 = $this->createTranslatableMock();
+
+        $localeString = 'en-US';
+        $localeString1 = 'en-GB';
+        $locale = $this->createLocaleMock($localeString);
+        $locale1 = $this->createLocaleMock($localeString1);
+
         $reference = [
             $this->createTranslationMock(),
             $this->createTranslationMock(),
         ];
-        $translatable = $this->createTranslatableMock();
-        $translatable1 = $this->createTranslatableMock();
-        $translatable2 = $this->createTranslatableMock(MockTranslatableItem::class);
-        $translationClass = 'translation';
-        $translationClass1 = 'translation1';
-        $classNameMap = [
-            \get_class($translatable) => $translationClass,
-            \get_class($translatable1) => $translationClass,
-            \get_class($translatable2) => $translationClass1,
-        ];
-        $localeString = 'en-US';
-        $locale = $this->createLocaleMock($localeString);
-        $localeString1 = 'en-GB';
-        $locale1 = $this->createLocaleMock($localeString1);
 
         $qb = $this->createQueryBuilderMock(
             [
                 'select' => TranslationRepository::QUERY_ALIAS,
                 'from' => [$translationClass, TranslationRepository::QUERY_ALIAS],
-                'where' => TranslationRepository::QUERY_ALIAS . '.' . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)',
-                'andWhere' => [
-                    [TranslationRepository::QUERY_ALIAS . '.' . Translation::LOCALE_FIELD_NAME . ' IN (:locales)'],
-                ],
+                'where' => self::TRANSLATABLES_WHERE,
+                'andWhere' => self::LOCALES_WHERE,
                 'setParameter' => [
                     ['translatables', [$translatable, $translatable1]],
                     ['locales', [$localeString, $localeString1]],
@@ -194,10 +156,8 @@ class TranslationRepositoryTest extends BaseCase
             [
                 'select' => TranslationRepository::QUERY_ALIAS,
                 'from' => [$translationClass1, TranslationRepository::QUERY_ALIAS],
-                'where' => TranslationRepository::QUERY_ALIAS . '.' . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)',
-                'andWhere' => [
-                    [TranslationRepository::QUERY_ALIAS . '.' . Translation::LOCALE_FIELD_NAME . ' IN (:locales)'],
-                ],
+                'where' => self::TRANSLATABLES_WHERE,
+                'andWhere' => self::LOCALES_WHERE,
                 'setParameter' => [
                     ['translatables', [$translatable2]],
                     ['locales', [$localeString, $localeString1]],
@@ -208,62 +168,46 @@ class TranslationRepositoryTest extends BaseCase
 
         $em = $this->createEmMock([$qb, $qb1]);
         $localeSwitcher = $this->createLocaleSwitcherMock();
-        $classNameManager = $this->createClassNameManagerMock($classNameMap);
-
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
-        $res = $repo->findTranslations([$translatable, $translatable1, $translatable2], [$locale, $locale1]);
-
-        $this->assertSame($reference, $res);
-    }
-
-    public function testFindTranslationsSingleItem(): void
-    {
-        $reference = [
-            $this->createTranslationMock(),
-            $this->createTranslationMock(),
-        ];
-        $translatable = $this->createTranslatableMock();
-        $translationClass = 'translation';
-        $classNameMap = [
-            \get_class($translatable) => $translationClass,
-        ];
-
-        $qb = $this->createQueryBuilderMock(
+        $classNameManager = $this->createClassNameManagerMock(
             [
-                'select' => TranslationRepository::QUERY_ALIAS,
-                'from' => [$translationClass, TranslationRepository::QUERY_ALIAS],
-                'where' => TranslationRepository::QUERY_ALIAS . '.' . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)',
-                'setParameter' => [
-                    ['translatables', [$translatable]],
-                ],
+                'translatable' => $translationClass,
+                'translatable2' => $translationClass1,
             ],
-            $reference
+            [
+                'translatable' => [$translatable, $translatable1],
+                'translatable2' => $translatable2,
+            ]
         );
 
-        $em = $this->createEmMock($qb);
-        $localeSwitcher = $this->createLocaleSwitcherMock();
-        $classNameManager = $this->createClassNameManagerMock($classNameMap);
-
         $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
-        $res = $repo->findTranslations($translatable);
+        $res = $repo->findTranslations(
+            [
+                $translatable,
+                $translatable1,
+                $translatable2,
+            ],
+            [
+                $locale,
+                $locale1,
+            ]
+        );
 
         $this->assertSame($reference, $res);
     }
 
     public function testFindTranslationsNoLocale(): void
     {
-        $reference = [$this->createTranslationMock()];
         $translatable = $this->createTranslatableMock();
-        $translationClass = 'translation';
-        $classNameMap = [
-            \get_class($translatable) => $translationClass,
+        $reference = [
+            $this->createTranslationMock(),
+            $this->createTranslationMock(),
         ];
 
         $qb = $this->createQueryBuilderMock(
             [
                 'select' => TranslationRepository::QUERY_ALIAS,
-                'from' => [$translationClass, TranslationRepository::QUERY_ALIAS],
-                'where' => TranslationRepository::QUERY_ALIAS . '.' . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)',
+                'from' => [self::BASE_TRANSLATION_CLASS, TranslationRepository::QUERY_ALIAS],
+                'where' => self::TRANSLATABLES_WHERE,
                 'setParameter' => [
                     ['translatables', [$translatable]],
                 ],
@@ -273,10 +217,40 @@ class TranslationRepositoryTest extends BaseCase
 
         $em = $this->createEmMock($qb);
         $localeSwitcher = $this->createLocaleSwitcherMock();
-        $classNameManager = $this->createClassNameManagerMock($classNameMap);
+        $classNameManager = $this->createBasicClassNameManagerMock($translatable);
 
         $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
         $res = $repo->findTranslations([$translatable]);
+
+        $this->assertSame($reference, $res);
+    }
+
+    public function testFindTranslationsNoLocaleSingleItem(): void
+    {
+        $translatable = $this->createTranslatableMock();
+        $reference = [
+            $this->createTranslationMock(),
+            $this->createTranslationMock(),
+        ];
+
+        $qb = $this->createQueryBuilderMock(
+            [
+                'select' => TranslationRepository::QUERY_ALIAS,
+                'from' => [self::BASE_TRANSLATION_CLASS, TranslationRepository::QUERY_ALIAS],
+                'where' => self::TRANSLATABLES_WHERE,
+                'setParameter' => [
+                    ['translatables', [$translatable]],
+                ],
+            ],
+            $reference
+        );
+
+        $em = $this->createEmMock($qb);
+        $localeSwitcher = $this->createLocaleSwitcherMock();
+        $classNameManager = $this->createBasicClassNameManagerMock($translatable);
+
+        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
+        $res = $repo->findTranslations($translatable);
 
         $this->assertSame($reference, $res);
     }
@@ -293,145 +267,73 @@ class TranslationRepositoryTest extends BaseCase
         $this->assertSame([], $res);
     }
 
-    /**
-     * @psalm-suppress MixedMethodCall
-     */
     public function testSetCurrentTranslation(): void
     {
-        $translationParent = $this->createTranslatableMock(Translatable::class, '0');
-        $translation = $this->createTranslationMock();
-        $translation->method('getTranslatable')->willReturn($translationParent);
+        $translationEqualParent = $this->createTranslatableMock();
+        $translationEqual = $this->createTranslationMock($translationEqualParent);
+        $translatableEqual = $this->createTranslatableMock($translationEqual);
 
-        $translationParent1 = $this->createTranslatableMock(Translatable::class, '1');
-        $translation1 = $this->createTranslationMock();
-        $translation1->method('getTranslatable')->willReturn($translationParent1);
+        $translationNonEqual = $this->createTranslationMock();
+        $translatableNonEqual = $this->createTranslatableMock(null);
 
-        $translation2 = $this->createTranslationMock();
-        $translation2->method('getTranslatable')->willReturn(null);
+        $translationEqualParentSecond = $this->createTranslatableMock();
+        $translationEqualSecond = $this->createTranslationMock($translationEqualParentSecond);
 
-        $translationParent3 = $this->createTranslatableMock(Translatable::class, '1');
-        $translation3 = $this->createTranslationMock();
-        $translation3->method('getTranslatable')->willReturn($translationParent3);
-
-        $translationParent4 = $this->createTranslatableMock(MockTranslatableItem::class, '2');
-        $translation4 = $this->createTranslationMock();
-        $translation4->method('getTranslatable')->willReturn($translationParent4);
-
-        $translationParent5 = $this->createTranslatableMock(Translatable::class, '5');
-        $translation5 = $this->createTranslationMock();
-        $translation5->method('getTranslatable')->willReturn($translationParent5);
-        $translationParent5->expects($this->once())
-            ->method('setCurrentTranslation')
-            ->with($this->identicalTo($translation5))
-            ->willReturnSelf();
-
-        $translatable = $this->createTranslatableMock(Translatable::class, '1');
-        $translatable->expects($this->once())
-            ->method('setCurrentTranslation')
-            ->with($this->identicalTo($translation1))
-            ->willReturnSelf();
-
-        $translatable1 = $this->createTranslatableMock(Translatable::class, '2');
-        $translatable1->expects($this->once())
-            ->method('setCurrentTranslation')
-            ->with($this->equalTo(null))
-            ->willReturnSelf();
-
-        /** @var ClassMetadata&MockObject */
-        $meta = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
-        $meta->method('getIdentifierValues')->willReturnCallback(fn (object $toCheck): array => [$toCheck->getId()]);
-
-        $em = $this->createEmMock([], [\get_class($translatable) => $meta]);
+        $em = $this->createEmMock();
         $localeSwitcher = $this->createLocaleSwitcherMock();
         $classNameManager = $this->createClassNameManagerMock();
+        $comparator = $this->createEntityComparatorMock(
+            [
+                [$translationEqualParent, $translatableEqual],
+                [$translationEqualParentSecond, $translatableEqual],
+            ]
+        );
 
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
+        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager, $comparator);
         $repo->setCurrentTranslation(
-            [$translatable, $translatable1, $translationParent5],
-            [$translation, $translation1, $translation2, $translation3, $translation4, $translation5]
+            [
+                $translatableEqual,
+                $translatableNonEqual,
+            ],
+            [
+                $translationEqual,
+                $translationNonEqual,
+                $translationEqualSecond,
+            ]
         );
     }
 
-    /**
-     * @psalm-suppress MixedMethodCall
-     */
     public function testSetCurrentTranslationSingleItem(): void
     {
-        $translationParent = $this->createTranslatableMock(Translatable::class, '1');
-        $translation = $this->createTranslationMock();
-        $translation->method('getTranslatable')->willReturn($translationParent);
+        $translationParent = $this->createTranslatableMock();
+        $translation = $this->createTranslationMock($translationParent);
+        $translatable = $this->createTranslatableMock($translation);
 
-        $translatable = $this->createTranslatableMock(Translatable::class, '1');
-        $translatable->expects($this->once())
-            ->method('setCurrentTranslation')
-            ->with($this->identicalTo($translation))
-            ->willReturnSelf();
-
-        /** @var ClassMetadata&MockObject */
-        $meta = $this->getMockBuilder(ClassMetadata::class)->disableOriginalConstructor()->getMock();
-        $meta->method('getIdentifierValues')->willReturnCallback(fn (object $toCheck): array => [$toCheck->getId()]);
-
-        $em = $this->createEmMock([], [\get_class($translatable) => $meta]);
+        $em = $this->createEmMock();
         $localeSwitcher = $this->createLocaleSwitcherMock();
         $classNameManager = $this->createClassNameManagerMock();
+        $comparator = $this->createEntityComparatorMock($translationParent, $translatable);
 
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
+        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager, $comparator);
         $repo->setCurrentTranslation($translatable, $translation);
     }
 
-    /**
-     * @psalm-param class-string $class
-     *
-     * @return Translatable&MockObject
-     */
-    private function createTranslatableMock(string $class = Translatable::class, ?string $id = null): Translatable
+    private function createLocaleSwitcherMock(string $locale = self::BASE_LOCALE): LocaleSwitcher
     {
-        /** @var Translatable&MockObject */
-        $translatable = $this->getMockBuilder($class)
-            ->addMethods(['getId'])
-            ->onlyMethods(['setCurrentTranslation'])
+        /** @var LocaleSwitcher&MockObject */
+        $localeSwitcher = $this->getMockBuilder(LocaleSwitcher::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        if ($id !== null) {
-            $translatable->method('getId')->willReturn($id);
-        } else {
-            $translatable->expects($this->never())->method('getId');
-        }
+        $localeSwitcher->method('getLocale')->willReturn($locale);
 
-        return $translatable;
-    }
-
-    /**
-     * @return Translation&MockObject
-     */
-    private function createTranslationMock(): Translation
-    {
-        /** @var Translation&MockObject */
-        $translation = $this->getMockBuilder(Translation::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        return $translation;
-    }
-
-    private function createLocaleMock(string $localeString = ''): Locale
-    {
-        /** @var Locale&MockObject */
-        $locale = $this->getMockBuilder(Locale::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $locale->method('getFull')->willReturn($localeString);
-
-        return $locale;
+        return $localeSwitcher;
     }
 
     /**
      * @psalm-param QueryBuilder[]|QueryBuilder $qb
-     * @psalm-param array<string, ClassMetadata> $meta
      */
-    private function createEmMock(array|QueryBuilder $qb = [], array $meta = []): EntityManagerInterface
+    private function createEmMock(array|QueryBuilder $qb = []): EntityManagerInterface
     {
         /** @var EntityManagerInterface&MockObject */
         $em = $this->getMockBuilder(EntityManagerInterface::class)->getMock();
@@ -445,63 +347,44 @@ class TranslationRepositoryTest extends BaseCase
             $em->expects($this->never())->method('createQueryBuilder');
         }
 
-        if (!empty($meta)) {
-            $em->method('getClassMetadata')->willReturnCallback(
-                function (string $toCheck) use ($meta): ClassMetadata {
-                    if (!isset($meta[$toCheck])) {
-                        throw new \RuntimeException("Metadata for {$toCheck} not found");
-                    }
-
-                    return $meta[$toCheck];
-                }
-            );
-        } else {
-            $em->expects($this->never())->method('getClassMetadata');
-        }
-
         return $em;
     }
 
-    private function createLocaleSwitcherMock(string $locale = ''): LocaleSwitcher
-    {
-        /** @var LocaleSwitcher&MockObject */
-        $localeSwitcher = $this->getMockBuilder(LocaleSwitcher::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $localeSwitcher->method('getLocale')->willReturn($locale);
-
-        return $localeSwitcher;
-    }
-
     /**
-     * @psalm-param array<string, string> $map
+     * @param array<array<object>>|object $param1
+     * @param ?object                     $param2
      */
-    private function createClassNameManagerMock(array $map = []): ClassNameManager
+    private function createEntityComparatorMock(array|object $param1 = [], ?object $param2 = null): EntityComparator
     {
-        /** @var ClassNameManager&MockObject */
-        $classNameManager = $this->getMockBuilder(ClassNameManager::class)
+        $equalityMap = \is_array($param1) ? $param1 : [[$param1, $param2]];
+
+        /** @var EntityComparator&MockObject */
+        $comparator = $this->getMockBuilder(EntityComparator::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $classNameManager->method('getTranslationClassForTranslatable')->willReturnCallback(
-            fn (string $toCheck): string => $map[$toCheck] ?? ''
+        $comparator->method('isEqual')->willReturnCallback(
+            function (object $a, object $b) use ($equalityMap): bool {
+                foreach ($equalityMap as $mapItem) {
+                    if (\in_array($a, $mapItem, true) && \in_array($b, $mapItem, true)) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         );
 
-        $classNameManager->method('getTranslationClassForTranslatableEntity')->willReturnCallback(
-            fn (object $toCheck): string => $map[\get_class($toCheck)] ?? ''
-        );
-
-        return $classNameManager;
+        return $comparator;
     }
 
     /**
-     * @psalm-param array<string, mixed> $queryParts
+     * @psalm-param array<string, mixed>|null $queryParts
      * @psalm-param array<int, mixed> $results
      *
      * @psalm-suppress MixedArgument
      */
-    private function createQueryBuilderMock(array $queryParts = [], array $results = []): QueryBuilder
+    private function createQueryBuilderMock(?array $queryParts = null, array $results = []): QueryBuilder
     {
         /** @var QueryBuilder&MockObject */
         $qb = $this->getMockBuilder(QueryBuilder::class)->disableOriginalConstructor()->getMock();

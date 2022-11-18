@@ -6,7 +6,6 @@ namespace Marvin255\DoctrineTranslationBundle\Tests;
 
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -45,36 +44,5 @@ abstract class EventSubscriberCase extends BaseCase
         $argsMock->method('getClassMetadata')->willReturn($metadata);
 
         return $argsMock;
-    }
-
-    /**
-     * @psalm-param array<string, string> $translatableTranslationPairs
-     *
-     * @psalm-suppress MixedPropertyTypeCoercion
-     */
-    protected function createClassNameManagerMock(array $translatableTranslationPairs = []): ClassNameManager
-    {
-        /** @var ClassNameManager&MockObject */
-        $manager = $this->getMockBuilder(ClassNameManager::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $manager->method('isTranslationClass')->willReturnCallback(
-            fn (string $toCheck): bool => \in_array($toCheck, $translatableTranslationPairs)
-        );
-
-        $manager->method('isTranslatableClass')->willReturnCallback(
-            fn (string $toCheck): bool => \array_key_exists($toCheck, $translatableTranslationPairs)
-        );
-
-        $manager->method('getTranslationClassForTranslatable')->willReturnCallback(
-            fn (string $translatable): string => $translatableTranslationPairs[$translatable] ?? ''
-        );
-
-        $manager->method('getTranslatableClassForTranslation')->willReturnCallback(
-            fn (string $translation): string => array_search($translation, $translatableTranslationPairs) ?: ''
-        );
-
-        return $manager;
     }
 }

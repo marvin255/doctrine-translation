@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace Marvin255\DoctrineTranslationBundle\Tests\Entity;
 
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
-use Marvin255\DoctrineTranslationBundle\Entity\Translation;
-use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
-use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * @internal
@@ -17,8 +14,7 @@ class TranslatableTest extends BaseCase
 {
     public function testAddTranslation(): void
     {
-        /** @var Translation */
-        $translation = $this->getMockBuilder(Translation::class)->getMock();
+        $translation = $this->createTranslationMock();
 
         /** @var Translatable */
         $model = $this->getMockForAbstractClass(Translatable::class);
@@ -29,10 +25,8 @@ class TranslatableTest extends BaseCase
 
     public function testClearTranslations(): void
     {
-        /** @var Translation */
-        $translation = $this->getMockBuilder(Translation::class)->getMock();
-        /** @var Translation */
-        $translation1 = $this->getMockBuilder(Translation::class)->getMock();
+        $translation = $this->createTranslationMock();
+        $translation1 = $this->createTranslationMock();
 
         /** @var Translatable */
         $model = $this->getMockForAbstractClass(Translatable::class);
@@ -45,8 +39,7 @@ class TranslatableTest extends BaseCase
 
     public function testRemoveTranslation(): void
     {
-        /** @var Translation */
-        $translation = $this->getMockBuilder(Translation::class)->getMock();
+        $translation = $this->createTranslationMock();
 
         /** @var Translatable */
         $model = $this->getMockForAbstractClass(Translatable::class);
@@ -58,28 +51,12 @@ class TranslatableTest extends BaseCase
 
     public function testFindTranslationByLocale(): void
     {
-        /** @var Locale&MockObject */
-        $localeToSearch = $this->getMockBuilder(Locale::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $localeToSearch->method('equals')->willReturn(false);
+        $localeString = 'en-US';
+        $localeToSearch = $this->createLocaleMock($localeString);
+        $localeToFind = $this->createLocaleMock($localeString);
 
-        /** @var Locale&MockObject */
-        $localeToFind = $this->getMockBuilder(Locale::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $localeToFind->method('equals')
-            ->willReturnCallback(
-                fn (Locale $item): bool => $item === $localeToSearch
-            );
-
-        /** @var Translation&MockObject */
-        $translationToFind = $this->getMockBuilder(Translation::class)->getMock();
-        $translationToFind->method('getLocale')->willReturn($localeToFind);
-
-        /** @var Translation&MockObject */
-        $translation = $this->getMockBuilder(Translation::class)->getMock();
-        $translation->method('getLocale')->willReturn(null);
+        $translationToFind = $this->createTranslationMock(null, $localeToFind);
+        $translation = $this->createTranslationMock();
 
         /** @var Translatable */
         $model = $this->getMockForAbstractClass(Translatable::class);
@@ -91,25 +68,11 @@ class TranslatableTest extends BaseCase
 
     public function testFindTranslationByLocaleNothingFound(): void
     {
-        /** @var Locale&MockObject */
-        $localeToSearch = $this->getMockBuilder(Locale::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $localeToSearch->method('equals')->willReturn(false);
+        $localeToSearch = $this->createLocaleMock('en-US');
+        $localeToFind = $this->createLocaleMock('fr-FR');
 
-        /** @var Locale&MockObject */
-        $localeToFind = $this->getMockBuilder(Locale::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $localeToFind->method('equals')->willReturn(false);
-
-        /** @var Translation&MockObject */
-        $translationToFind = $this->getMockBuilder(Translation::class)->getMock();
-        $translationToFind->method('getLocale')->willReturn($localeToFind);
-
-        /** @var Translation&MockObject */
-        $translation = $this->getMockBuilder(Translation::class)->getMock();
-        $translation->method('getLocale')->willReturn(null);
+        $translationToFind = $this->createTranslationMock(null, $localeToFind);
+        $translation = $this->createTranslationMock();
 
         /** @var Translatable */
         $model = $this->getMockForAbstractClass(Translatable::class);
@@ -119,19 +82,16 @@ class TranslatableTest extends BaseCase
         $this->assertNull($model->findTranslationByLocale($localeToSearch));
     }
 
-    public function testSetGetCurrentTranslation(): void
+    public function testLockCurrentTranslation(): void
     {
-        /** @var Translation */
-        $translation = $this->getMockBuilder(Translation::class)->getMock();
-
-        /** @var Translation */
-        $translation1 = $this->getMockBuilder(Translation::class)->getMock();
+        $translation = $this->createTranslationMock();
+        $translation1 = $this->createTranslationMock();
 
         /** @var Translatable */
         $model = $this->getMockForAbstractClass(Translatable::class);
         $model->addTranslation($translation1);
 
-        $this->assertSame($model, $model->setCurrentTranslation($translation));
+        $this->assertSame($model, $model->lockCurrentTranslation($translation));
         $this->assertSame([$translation], $model->getTranslations());
     }
 }

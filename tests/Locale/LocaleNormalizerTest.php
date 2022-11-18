@@ -36,12 +36,10 @@ class LocaleNormalizerTest extends BaseCase
     public function provideNormalize(): array
     {
         $mockLocale = 'en-US';
-        $mock = $this->getMockBuilder(Locale::class)->disableOriginalConstructor()->getMock();
-        $mock->method('getFull')->willReturn($mockLocale);
 
         return [
             'correct data' => [
-                $mock,
+                $this->createLocaleMock($mockLocale),
                 $mockLocale,
             ],
             'null' => [
@@ -70,7 +68,7 @@ class LocaleNormalizerTest extends BaseCase
     {
         return [
             'correct data' => [
-                $this->getMockBuilder(Locale::class)->disableOriginalConstructor()->getMock(),
+                $this->createLocaleMock(),
                 true,
             ],
             'null' => [

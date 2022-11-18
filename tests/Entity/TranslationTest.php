@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Marvin255\DoctrineTranslationBundle\Tests\Entity;
 
-use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
-use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
 
 /**
@@ -24,10 +22,7 @@ class TranslationTest extends BaseCase
 
     public function testGetSetLocale(): void
     {
-        /** @var Locale */
-        $locale = $this->getMockBuilder(Locale::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $locale = $this->createLocaleMock();
 
         /** @var Translation */
         $model = $this->getMockForAbstractClass(Translation::class);
@@ -38,10 +33,7 @@ class TranslationTest extends BaseCase
 
     public function testGetSetTranslatable(): void
     {
-        /** @var Translatable */
-        $translatable = $this->getMockBuilder(Translatable::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $translatable = $this->createTranslatableMock();
 
         /** @var Translation */
         $model = $this->getMockForAbstractClass(Translation::class);

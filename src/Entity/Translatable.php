@@ -18,6 +18,9 @@ use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 #[MappedSuperclass]
 abstract class Translatable
 {
+    public const TRANSLATIONS_FIELD_NAME = 'translations';
+    public const CURRENT_TRANSLATION_FIELD_NAME = 'currentTranslation';
+
     /**
      * @psalm-var Collection<int, R>
      */
@@ -101,7 +104,7 @@ abstract class Translatable
      *
      * @psalm-param R|null $translation
      */
-    public function setCurrentTranslation(?Translation $translation): self
+    public function lockCurrentTranslation(?Translation $translation): self
     {
         $this->currentTranslation = $translation;
 

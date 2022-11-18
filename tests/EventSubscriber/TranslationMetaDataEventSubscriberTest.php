@@ -9,7 +9,6 @@ use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
 use Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslationMetaDataEventSubscriber;
 use Marvin255\DoctrineTranslationBundle\Tests\EventSubscriberCase;
-use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslatableItemTranslation;
 
 /**
  * @internal
@@ -28,7 +27,7 @@ class TranslationMetaDataEventSubscriberTest extends EventSubscriberCase
 
     public function testLoadClassMetadataCreateIndex(): void
     {
-        $name = MockTranslatableItemTranslation::class;
+        $name = 'item\\Name';
         $indexName = strtolower(str_replace('\\', '_', $name)) . '_translation_idx';
         $classNameManager = $this->createClassNameManagerMock(['Translatable' => $name]);
         $args = $this->createEventArgsMock(['name' => $name]);
