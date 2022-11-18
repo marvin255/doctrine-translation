@@ -16,6 +16,34 @@ use PHPUnit\Framework\TestCase;
  */
 abstract class BaseCase extends TestCase
 {
+    public const BASE_LOCALE = 'en-US';
+    public const BASE_LOCALE_ARRAY = [self::BASE_LOCALE];
+    public const BASE_TRANSLATABLE_CLASS = 'Translatable';
+    public const BASE_TRANSLATION_CLASS = 'Translation';
+    public const BASE_CLASS_NAMES_MAP = [self::BASE_TRANSLATABLE_CLASS => self::BASE_TRANSLATION_CLASS];
+
+    /**
+     * @psalm-param class-string $class
+     */
+    protected function createTranslatableMock(Translation|null|bool $currentTranslation = false): Translatable
+    {
+        /** @var Translatable&MockObject */
+        $translatable = $this->getMockBuilder(Translatable::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        if (!\is_bool($currentTranslation)) {
+            $translatable->expects($this->once())
+                ->method('lockCurrentTranslation')
+                ->with($this->identicalTo($currentTranslation))
+                ->willReturnSelf();
+        } else {
+            $translatable->expects($this->never())->method('lockCurrentTranslation');
+        }
+
+        return $translatable;
+    }
+
     protected function createTranslationMock(?Translatable $translatable = null, ?Locale $locale = null, ?int $id = null): Translation
     {
         /** @var Translation&MockObject */
@@ -30,7 +58,7 @@ abstract class BaseCase extends TestCase
         return $translation;
     }
 
-    protected function createLocaleMock(string $localeString = ''): Locale
+    protected function createLocaleMock(string $localeString = self::BASE_LOCALE): Locale
     {
         /** @var Locale&MockObject */
         $locale = $this->getMockBuilder(Locale::class)
@@ -45,12 +73,26 @@ abstract class BaseCase extends TestCase
         return $locale;
     }
 
+    protected function createBasicClassNameManagerMock(?Translatable $translatable = null, ?Translation $translation = null): ClassNameManager
+    {
+        $emtityClassMap = [];
+        if ($translatable) {
+            $emtityClassMap[self::BASE_TRANSLATABLE_CLASS] = $translatable;
+        }
+        if ($translation) {
+            $emtityClassMap[self::BASE_TRANSLATION_CLASS] = $translation;
+        }
+
+        return $this->createClassNameManagerMock(self::BASE_CLASS_NAMES_MAP, $emtityClassMap);
+    }
+
     /**
      * @psalm-param array<string, string> $translatableTranslationPairs
+     * @psalm-param array<string, object|object[]> $entityClassMap
      *
      * @psalm-suppress MixedPropertyTypeCoercion
      */
-    protected function createClassNameManagerMock(array $translatableTranslationPairs = []): ClassNameManager
+    protected function createClassNameManagerMock(array $translatableTranslationPairs = [], array $entityClassMap = []): ClassNameManager
     {
         /** @var ClassNameManager&MockObject */
         $manager = $this->getMockBuilder(ClassNameManager::class)
@@ -74,7 +116,17 @@ abstract class BaseCase extends TestCase
         );
 
         $manager->method('getTranslationClassForTranslatableEntity')->willReturnCallback(
-            fn (object $entity): string => $translatableTranslationPairs[\get_class($entity)] ?? ''
+            function (object $entity) use ($translatableTranslationPairs, $entityClassMap): string {
+                $class = \get_class($entity);
+                foreach ($entityClassMap as $classKey => $objects) {
+                    if ($objects === $entity || (\is_array($objects) && \in_array($entity, $objects, true))) {
+                        $class = $classKey;
+                        break;
+                    }
+                }
+
+                return $translatableTranslationPairs[$class] ?? '';
+            }
         );
 
         return $manager;

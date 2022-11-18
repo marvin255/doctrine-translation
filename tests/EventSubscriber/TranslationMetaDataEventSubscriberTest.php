@@ -27,7 +27,7 @@ class TranslationMetaDataEventSubscriberTest extends EventSubscriberCase
 
     public function testLoadClassMetadataCreateIndex(): void
     {
-        $name = 'itemName';
+        $name = 'item\\Name';
         $indexName = strtolower(str_replace('\\', '_', $name)) . '_translation_idx';
         $classNameManager = $this->createClassNameManagerMock(['Translatable' => $name]);
         $args = $this->createEventArgsMock(['name' => $name]);

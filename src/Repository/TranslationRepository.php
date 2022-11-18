@@ -25,14 +25,18 @@ class TranslationRepository
 
     private readonly ClassNameManager $classNameManager;
 
+    private readonly EntityComparator $comparator;
+
     public function __construct(
         EntityManagerInterface $em,
         LocaleSwitcher $localeSwitcher,
-        ClassNameManager $classNameManager
+        ClassNameManager $classNameManager,
+        ?EntityComparator $comparator = null
     ) {
         $this->em = $em;
         $this->localeSwitcher = $localeSwitcher;
         $this->classNameManager = $classNameManager;
+        $this->comparator = $comparator ?: new EntityComparator($em);
     }
 
     /**
@@ -129,7 +133,7 @@ class TranslationRepository
             $currentTranslation = null;
             foreach ($translations as $translation) {
                 $parentTranslatable = $translation->getTranslatable();
-                if ($parentTranslatable !== null && $this->isTranslatablesEqual($item, $parentTranslatable)) {
+                if ($parentTranslatable !== null && $this->comparator->isEqual($item, $parentTranslatable)) {
                     $currentTranslation = $translation;
                     break;
                 }
@@ -178,28 +182,5 @@ class TranslationRepository
         }
 
         return $localesStrings;
-    }
-
-    /**
-     * Compares two translatable items for equality.
-     */
-    private function isTranslatablesEqual(Translatable $a, Translatable $b): bool
-    {
-        if ($a === $b) {
-            return true;
-        }
-
-        $aClass = \get_class($a);
-        $bClass = \get_class($b);
-
-        if ($aClass !== $bClass) {
-            return false;
-        }
-
-        $meta = $this->em->getClassMetadata($aClass);
-        $aId = $meta->getIdentifierValues($a);
-        $bId = $meta->getIdentifierValues($b);
-
-        return $aId === $bId;
     }
 }
