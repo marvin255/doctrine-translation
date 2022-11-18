@@ -18,6 +18,8 @@ use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 #[MappedSuperclass]
 abstract class Translatable
 {
+    public const TRANSLATIONS_FIELD_NAME = 'translations';
+
     /**
      * @psalm-var Collection<int, R>
      */

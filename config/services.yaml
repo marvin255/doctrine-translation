@@ -25,3 +25,9 @@ services:
   Marvin255\DoctrineTranslationBundle\Locale\LocaleNormalizer:
     class: Marvin255\DoctrineTranslationBundle\Locale\LocaleNormalizer
     tags: ['serializer.normalizer', 'serializer.denormalizer']
+
+  Marvin255\DoctrineTranslationBundle\TypeExtractor\TranslatableTypeExtractor:
+    class: Marvin255\DoctrineTranslationBundle\TypeExtractor\TranslatableTypeExtractor
+    arguments:
+      - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
+    tags: ['property_info.type_extractor']
