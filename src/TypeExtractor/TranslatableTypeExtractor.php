@@ -42,23 +42,9 @@ class TranslatableTypeExtractor implements PropertyTypeExtractorInterface
         $valueType = new Type(Type::BUILTIN_TYPE_OBJECT, false, $translationClass);
 
         if ($property === Translatable::TRANSLATED_FIELD_NAME) {
-            $type = new Type(
-                Type::BUILTIN_TYPE_ARRAY,
-                false,
-                null,
-                true,
-                $keyType,
-                $valueType
-            );
+            $type = new Type(Type::BUILTIN_TYPE_ARRAY, false, null, true, $keyType, $valueType);
         } else {
-            $type = new Type(
-                Type::BUILTIN_TYPE_OBJECT,
-                false,
-                Collection::class,
-                true,
-                $keyType,
-                $valueType
-            );
+            $type = new Type(Type::BUILTIN_TYPE_OBJECT, false, Collection::class, true, $keyType, $valueType);
         }
 
         return [$type];
