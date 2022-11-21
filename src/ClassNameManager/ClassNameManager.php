@@ -18,8 +18,12 @@ class ClassNameManager
     /**
      * Check if set object is a translation item.
      */
-    public function isTranslationEntity(object $entity): bool
+    public function isTranslationEntity(mixed $entity): bool
     {
+        if (!\is_object($entity)) {
+            return false;
+        }
+
         $class = \get_class($entity);
 
         return $this->isTranslationClass($class);
@@ -36,8 +40,12 @@ class ClassNameManager
     /**
      * Check if set object is a translatable item.
      */
-    public function isTranslatableEntity(object $entity): bool
+    public function isTranslatableEntity(mixed $entity): bool
     {
+        if (!\is_object($entity)) {
+            return false;
+        }
+
         $class = \get_class($entity);
 
         return $this->isTranslatableClass($class);
