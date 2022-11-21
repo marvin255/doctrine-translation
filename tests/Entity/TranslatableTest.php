@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Marvin255\DoctrineTranslationBundle\Tests\Entity;
 
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
+use Marvin255\DoctrineTranslationBundle\Entity\Translation;
 use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
 
 /**
@@ -82,16 +83,39 @@ class TranslatableTest extends BaseCase
         $this->assertNull($model->findTranslationByLocale($localeToSearch));
     }
 
-    public function testLockCurrentTranslation(): void
+    /**
+     * @psalm-param Translation|iterable<Translation> $set
+     * @psalm-param array<Translation> $reference
+     *
+     * @dataProvider provideSetGetTranslated
+     */
+    public function testSetGetTranslated(Translation|iterable $set, array $reference): void
+    {
+        /** @var Translatable */
+        $model = $this->getMockForAbstractClass(Translatable::class);
+
+        $this->assertSame($model, $model->setTranslated($set));
+        $this->assertSame($reference, $model->getTranslated());
+    }
+
+    public function provideSetGetTranslated(): array
     {
         $translation = $this->createTranslationMock();
         $translation1 = $this->createTranslationMock();
 
-        /** @var Translatable */
-        $model = $this->getMockForAbstractClass(Translatable::class);
-        $model->addTranslation($translation1);
-
-        $this->assertSame($model, $model->lockCurrentTranslation($translation));
-        $this->assertSame([$translation], $model->getTranslations());
+        return [
+            'single translation' => [
+                $translation,
+                [$translation],
+            ],
+            'list of translations region' => [
+                [$translation, $translation1],
+                [$translation, $translation1],
+            ],
+            'empty array' => [
+                [],
+                [],
+            ],
+        ];
     }
 }

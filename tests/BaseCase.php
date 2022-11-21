@@ -25,20 +25,20 @@ abstract class BaseCase extends TestCase
     /**
      * @psalm-param class-string $class
      */
-    protected function createTranslatableMock(Translation|null|bool $currentTranslation = false): Translatable
+    protected function createTranslatableMock(mixed $translated = false): Translatable
     {
         /** @var Translatable&MockObject */
         $translatable = $this->getMockBuilder(Translatable::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        if (!\is_bool($currentTranslation)) {
+        if (!\is_bool($translated)) {
             $translatable->expects($this->once())
-                ->method('lockCurrentTranslation')
-                ->with($this->identicalTo($currentTranslation))
+                ->method('setTranslated')
+                ->with($this->identicalTo($translated))
                 ->willReturnSelf();
         } else {
-            $translatable->expects($this->never())->method('lockCurrentTranslation');
+            $translatable->expects($this->never())->method('setTranslated');
         }
 
         return $translatable;
