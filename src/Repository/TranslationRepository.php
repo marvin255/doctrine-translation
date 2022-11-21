@@ -46,7 +46,7 @@ class TranslationRepository
      */
     public function findAndSetTranslationForCurrentLocale(iterable|Translatable $items): void
     {
-        $this->setCurrentTranslation(
+        $this->setItemsTranslated(
             $items,
             $this->findTranslationForCurrentLocale($items)
         );
@@ -74,7 +74,7 @@ class TranslationRepository
      */
     public function findAndSetTranslationForLocale(iterable|Translatable $items, Locale $locale): void
     {
-        $this->setCurrentTranslation(
+        $this->setItemsTranslated(
             $items,
             $this->findTranslations($items, $locale)
         );
@@ -119,26 +119,25 @@ class TranslationRepository
     }
 
     /**
-     * Uses list of translations to set current translation for all translatable items.
+     * Uses list of translations to set current translations for all translatable items.
      *
      * @param iterable<Translatable>|Translatable $items
      * @param iterable<Translation>|Translation   $translations
      */
-    public function setCurrentTranslation(iterable|Translatable $items, iterable|Translation $translations): void
+    public function setItemsTranslated(iterable|Translatable $items, iterable|Translation $translations): void
     {
         $items = $items instanceof Translatable ? [$items] : $items;
         $translations = $translations instanceof Translation ? [$translations] : $translations;
 
         foreach ($items as $item) {
-            $currentTranslation = null;
+            $translated = [];
             foreach ($translations as $translation) {
                 $parentTranslatable = $translation->getTranslatable();
                 if ($parentTranslatable !== null && $this->comparator->isEqual($item, $parentTranslatable)) {
-                    $currentTranslation = $translation;
-                    break;
+                    $translated[] = $translation;
                 }
             }
-            $item->lockCurrentTranslation($currentTranslation);
+            $item->setTranslated($translated);
         }
     }
 

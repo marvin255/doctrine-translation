@@ -37,21 +37,34 @@ class TranslatableTypeExtractorTest extends BaseCase
         $this->assertNull($res);
     }
 
-    public function testGetTypeCurrentField(): void
+    public function testGetTypeTranslatedField(): void
     {
         $classNameTranslatable = 'testTranslatable';
         $classNameTranslation = 'testTranslation';
         $classNameManager = $this->createClassNameManagerMock([$classNameTranslatable => $classNameTranslation]);
 
         $extractor = new TranslatableTypeExtractor($classNameManager);
-        $res = $extractor->getTypes($classNameTranslatable, Translatable::CURRENT_TRANSLATION_FIELD_NAME);
+        $res = $extractor->getTypes($classNameTranslatable, Translatable::TRANSLATED_FIELD_NAME);
 
         $this->assertIsArray($res);
         $this->assertCount(1, $res);
         $this->assertInstanceOf(Type::class, $res[0]);
-        $this->assertSame(Type::BUILTIN_TYPE_OBJECT, $res[0]->getBuiltinType());
+        $this->assertSame(Type::BUILTIN_TYPE_ARRAY, $res[0]->getBuiltinType());
         $this->assertFalse($res[0]->isNullable());
-        $this->assertSame($classNameTranslation, $res[0]->getClassName());
+        $this->assertTrue($res[0]->isCollection());
+        $this->assertNull($res[0]->getClassName());
+
+        $this->assertIsArray($res[0]->getCollectionKeyTypes());
+        $this->assertCount(1, $res[0]->getCollectionKeyTypes());
+        $this->assertInstanceOf(Type::class, $res[0]->getCollectionKeyTypes()[0]);
+        $this->assertSame(Type::BUILTIN_TYPE_INT, $res[0]->getCollectionKeyTypes()[0]->getBuiltinType());
+        $this->assertFalse($res[0]->getCollectionKeyTypes()[0]->isNullable());
+
+        $this->assertIsArray($res[0]->getCollectionValueTypes());
+        $this->assertCount(1, $res[0]->getCollectionValueTypes());
+        $this->assertInstanceOf(Type::class, $res[0]->getCollectionValueTypes()[0]);
+        $this->assertSame($classNameTranslation, $res[0]->getCollectionValueTypes()[0]->getClassName());
+        $this->assertFalse($res[0]->getCollectionValueTypes()[0]->isNullable());
     }
 
     public function testGetTypeTranslations(): void

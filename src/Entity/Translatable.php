@@ -19,7 +19,7 @@ use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 abstract class Translatable
 {
     public const TRANSLATIONS_FIELD_NAME = 'translations';
-    public const CURRENT_TRANSLATION_FIELD_NAME = 'currentTranslation';
+    public const TRANSLATED_FIELD_NAME = 'translated';
 
     /**
      * @psalm-var Collection<int, R>
@@ -28,9 +28,9 @@ abstract class Translatable
     protected Collection $translations;
 
     /**
-     * @psalm-var R|null
+     * @psalm-var array<int, R>
      */
-    private ?Translation $currentTranslation = null;
+    private array $translated = [];
 
     public function __construct()
     {
@@ -44,10 +44,6 @@ abstract class Translatable
      */
     public function getTranslations(): array
     {
-        if ($this->currentTranslation !== null) {
-            return [$this->currentTranslation];
-        }
-
         return $this->translations->toArray();
     }
 
@@ -100,14 +96,32 @@ abstract class Translatable
     }
 
     /**
-     * Sets new current translation.
+     * This field can be used to provide external translations and avoid loading list of related translations.
+     * E.g. load translations for whole list of items using just one query and set correct translations for each item.
      *
-     * @psalm-param R|null $translation
+     * @psalm-param R|iterable<R> $translated
      */
-    public function lockCurrentTranslation(?Translation $translation): self
+    public function setTranslated(Translation|iterable $translated): self
     {
-        $this->currentTranslation = $translation;
+        if ($translated instanceof Translation) {
+            $this->translated = [$translated];
+        } else {
+            $this->translated = [];
+            foreach ($translated as $translation) {
+                $this->translated[] = $translation;
+            }
+        }
 
         return $this;
+    }
+
+    /**
+     * Returns list of provided translations.
+     *
+     * @psalm-return array<int, R>
+     */
+    public function getTranslated(): array
+    {
+        return $this->translated;
     }
 }

@@ -26,7 +26,7 @@ class TranslationRepositoryTest extends BaseCase
     {
         $translationParent = $this->createTranslatableMock();
         $translation = $this->createTranslationMock($translationParent);
-        $translatable = $this->createTranslatableMock($translation);
+        $translatable = $this->createTranslatableMock([$translation]);
 
         $qb = $this->createQueryBuilderMock(
             [
@@ -94,7 +94,7 @@ class TranslationRepositoryTest extends BaseCase
     {
         $translationParent = $this->createTranslatableMock();
         $translation = $this->createTranslationMock($translationParent);
-        $translatable = $this->createTranslatableMock($translation);
+        $translatable = $this->createTranslatableMock([$translation]);
         $locale = $this->createLocaleMock();
 
         $qb = $this->createQueryBuilderMock(
@@ -267,17 +267,18 @@ class TranslationRepositoryTest extends BaseCase
         $this->assertSame([], $res);
     }
 
-    public function testSetCurrentTranslation(): void
+    public function testSetItemsTranslated(): void
     {
         $translationEqualParent = $this->createTranslatableMock();
         $translationEqual = $this->createTranslationMock($translationEqualParent);
-        $translatableEqual = $this->createTranslatableMock($translationEqual);
-
-        $translationNonEqual = $this->createTranslationMock();
-        $translatableNonEqual = $this->createTranslatableMock(null);
 
         $translationEqualParentSecond = $this->createTranslatableMock();
         $translationEqualSecond = $this->createTranslationMock($translationEqualParentSecond);
+
+        $translatableEqual = $this->createTranslatableMock([$translationEqual, $translationEqualSecond]);
+
+        $translationNonEqual = $this->createTranslationMock();
+        $translatableNonEqual = $this->createTranslatableMock([]);
 
         $em = $this->createEmMock();
         $localeSwitcher = $this->createLocaleSwitcherMock();
@@ -290,7 +291,7 @@ class TranslationRepositoryTest extends BaseCase
         );
 
         $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager, $comparator);
-        $repo->setCurrentTranslation(
+        $repo->setItemsTranslated(
             [
                 $translatableEqual,
                 $translatableNonEqual,
@@ -303,11 +304,11 @@ class TranslationRepositoryTest extends BaseCase
         );
     }
 
-    public function testSetCurrentTranslationSingleItem(): void
+    public function testSetItemsTranslatedSingleItem(): void
     {
         $translationParent = $this->createTranslatableMock();
         $translation = $this->createTranslationMock($translationParent);
-        $translatable = $this->createTranslatableMock($translation);
+        $translatable = $this->createTranslatableMock([$translation]);
 
         $em = $this->createEmMock();
         $localeSwitcher = $this->createLocaleSwitcherMock();
@@ -315,7 +316,7 @@ class TranslationRepositoryTest extends BaseCase
         $comparator = $this->createEntityComparatorMock($translationParent, $translatable);
 
         $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager, $comparator);
-        $repo->setCurrentTranslation($translatable, $translation);
+        $repo->setItemsTranslated($translatable, $translation);
     }
 
     private function createLocaleSwitcherMock(string $locale = self::BASE_LOCALE): LocaleSwitcher

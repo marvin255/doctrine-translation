@@ -30,32 +30,23 @@ class TranslatableTypeExtractor implements PropertyTypeExtractorInterface
      */
     public function getTypes(string $class, string $property, array $context = [])
     {
-        if (!$this->classNameManager->isTranslatableClass($class)) {
+        if (
+            !\in_array($property, [Translatable::TRANSLATED_FIELD_NAME, Translatable::TRANSLATIONS_FIELD_NAME])
+            || !$this->classNameManager->isTranslatableClass($class)
+        ) {
             return null;
         }
 
         $translationClass = $this->classNameManager->getTranslationClassForTranslatable($class);
+        $keyType = new Type(Type::BUILTIN_TYPE_INT, false);
+        $valueType = new Type(Type::BUILTIN_TYPE_OBJECT, false, $translationClass);
 
-        $type = null;
-        if ($property === Translatable::CURRENT_TRANSLATION_FIELD_NAME) {
-            $type = [
-                new Type(Type::BUILTIN_TYPE_OBJECT, false, $translationClass),
-            ];
-        } elseif ($property === Translatable::TRANSLATIONS_FIELD_NAME) {
-            $keyType = new Type(Type::BUILTIN_TYPE_INT, false);
-            $valueType = new Type(Type::BUILTIN_TYPE_OBJECT, false, $translationClass);
-            $type = [
-                new Type(
-                    Type::BUILTIN_TYPE_OBJECT,
-                    false,
-                    Collection::class,
-                    true,
-                    $keyType,
-                    $valueType
-                ),
-            ];
+        if ($property === Translatable::TRANSLATED_FIELD_NAME) {
+            $type = new Type(Type::BUILTIN_TYPE_ARRAY, false, null, true, $keyType, $valueType);
+        } else {
+            $type = new Type(Type::BUILTIN_TYPE_OBJECT, false, Collection::class, true, $keyType, $valueType);
         }
 
-        return $type;
+        return [$type];
     }
 }
