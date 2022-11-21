@@ -20,6 +20,31 @@ use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslatableItemTranslati
 class ClassNameManagerTest extends BaseCase
 {
     /**
+     * @dataProvider provideIsTranslationEntity
+     */
+    public function testIsTranslationEntity(object $entity, bool $reference): void
+    {
+        $manager = new ClassNameManager();
+        $isClass = $manager->isTranslationEntity($entity);
+
+        $this->assertSame($reference, $isClass);
+    }
+
+    public function provideIsTranslationEntity(): array
+    {
+        return [
+            'correct entity' => [
+                new MockTranslatableItemTranslation(),
+                true,
+            ],
+            'incorrect entity' => [
+                $this,
+                false,
+            ],
+        ];
+    }
+
+    /**
      * @dataProvider provideIsTranslationClass
      */
     public function testIsTranslationClass(string $className, bool $reference): void
@@ -39,6 +64,31 @@ class ClassNameManagerTest extends BaseCase
             ],
             'incorrect class' => [
                 self::class,
+                false,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider provideIsTranslatableEntity
+     */
+    public function testIsTranslatableEntity(object $entity, bool $reference): void
+    {
+        $manager = new ClassNameManager();
+        $isClass = $manager->isTranslatableEntity($entity);
+
+        $this->assertSame($reference, $isClass);
+    }
+
+    public function provideIsTranslatableEntity(): array
+    {
+        return [
+            'correct entity' => [
+                new MockTranslatableItem(),
+                true,
+            ],
+            'incorrect entity' => [
+                $this,
                 false,
             ],
         ];
