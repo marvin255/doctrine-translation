@@ -22,7 +22,7 @@ class ClassNameManagerTest extends BaseCase
     /**
      * @dataProvider provideIsTranslationEntity
      */
-    public function testIsTranslationEntity(object $entity, bool $reference): void
+    public function testIsTranslationEntity(object|string $entity, bool $reference): void
     {
         $manager = new ClassNameManager();
         $isClass = $manager->isTranslationEntity($entity);
@@ -39,6 +39,10 @@ class ClassNameManagerTest extends BaseCase
             ],
             'incorrect entity' => [
                 $this,
+                false,
+            ],
+            'not an entity' => [
+                'string',
                 false,
             ],
         ];
@@ -72,7 +76,7 @@ class ClassNameManagerTest extends BaseCase
     /**
      * @dataProvider provideIsTranslatableEntity
      */
-    public function testIsTranslatableEntity(object $entity, bool $reference): void
+    public function testIsTranslatableEntity(object|string $entity, bool $reference): void
     {
         $manager = new ClassNameManager();
         $isClass = $manager->isTranslatableEntity($entity);
@@ -89,6 +93,10 @@ class ClassNameManagerTest extends BaseCase
             ],
             'incorrect entity' => [
                 $this,
+                false,
+            ],
+            'not an entity' => [
+                'string',
                 false,
             ],
         ];
