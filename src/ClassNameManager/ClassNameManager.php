@@ -16,11 +16,31 @@ class ClassNameManager
     private const TRANSLATION_CLASS_SUFFIX = 'Translation';
 
     /**
+     * Check if set object is a translation item.
+     */
+    public function isTranslationEntity(object $entity): bool
+    {
+        $class = \get_class($entity);
+
+        return $this->isTranslationClass($class);
+    }
+
+    /**
      * Check if set class name is a class name for translation item.
      */
     public function isTranslationClass(string $class): bool
     {
         return is_subclass_of($class, Translation::class);
+    }
+
+    /**
+     * Check if set object is a translatable item.
+     */
+    public function isTranslatableEntity(object $entity): bool
+    {
+        $class = \get_class($entity);
+
+        return $this->isTranslatableClass($class);
     }
 
     /**
