@@ -17,6 +17,8 @@ class ClassNameManager
 
     /**
      * Check if set object is a translation item.
+     *
+     * @psalm-assert-if-true Translation $entity
      */
     public function isTranslationEntity(mixed $entity): bool
     {
@@ -39,6 +41,8 @@ class ClassNameManager
 
     /**
      * Check if set object is a translatable item.
+     *
+     * @psalm-assert-if-true Translatable $entity
      */
     public function isTranslatableEntity(mixed $entity): bool
     {
