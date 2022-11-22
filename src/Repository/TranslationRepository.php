@@ -10,7 +10,7 @@ use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
 use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 use Marvin255\DoctrineTranslationBundle\Locale\LocaleFactory;
-use Symfony\Component\Translation\LocaleSwitcher;
+use Symfony\Contracts\Translation\LocaleAwareInterface;
 
 /**
  * Repository that can query translations for items.
@@ -21,7 +21,7 @@ class TranslationRepository
 
     private readonly EntityManagerInterface $em;
 
-    private readonly LocaleSwitcher $localeSwitcher;
+    private readonly LocaleAwareInterface $localeSwitcher;
 
     private readonly ClassNameManager $classNameManager;
 
@@ -29,7 +29,7 @@ class TranslationRepository
 
     public function __construct(
         EntityManagerInterface $em,
-        LocaleSwitcher $localeSwitcher,
+        LocaleAwareInterface $localeSwitcher,
         ClassNameManager $classNameManager,
         ?EntityComparator $comparator = null
     ) {

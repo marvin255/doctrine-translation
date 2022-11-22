@@ -12,7 +12,7 @@ use Marvin255\DoctrineTranslationBundle\Repository\EntityComparator;
 use Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository;
 use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
 use PHPUnit\Framework\MockObject\MockObject;
-use Symfony\Component\Translation\LocaleSwitcher;
+use Symfony\Contracts\Translation\LocaleAwareInterface;
 
 /**
  * @internal
@@ -359,12 +359,10 @@ class TranslationRepositoryTest extends BaseCase
         $repo->setItemsTranslated($translatable, $translation);
     }
 
-    private function createLocaleSwitcherMock(string $locale = self::BASE_LOCALE): LocaleSwitcher
+    private function createLocaleSwitcherMock(string $locale = self::BASE_LOCALE): LocaleAwareInterface
     {
-        /** @var LocaleSwitcher&MockObject */
-        $localeSwitcher = $this->getMockBuilder(LocaleSwitcher::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        /** @var LocaleAwareInterface&MockObject */
+        $localeSwitcher = $this->getMockBuilder(LocaleAwareInterface::class)->getMock();
 
         $localeSwitcher->method('getLocale')->willReturn($locale);
 
