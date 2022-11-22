@@ -15,24 +15,48 @@ use PHPUnit\Framework\MockObject\MockObject;
  */
 class EntityComparatorTest extends BaseCase
 {
-    public function testIsEqualSameObject(): void
+    /**
+     * @dataProvider provideIsEqual
+     */
+    public function testIsEqual(mixed $a, mixed $b, bool $reference): void
     {
         $em = $this->createEmMock();
 
         $comparator = new EntityComparator($em);
-        $res = $comparator->isEqual($this, $this);
+        $res = $comparator->isEqual($a, $b);
 
-        $this->assertTrue($res);
+        $this->assertSame($reference, $res);
     }
 
-    public function testIsEqualDifferentClasses(): void
+    public function provideIsEqual(): array
     {
-        $em = $this->createEmMock();
-
-        $comparator = new EntityComparator($em);
-        $res = $comparator->isEqual($this, new \stdClass());
-
-        $this->assertFalse($res);
+        return [
+            'first param is not an object' => [
+                'test',
+                $this,
+                false,
+            ],
+            'second param is not an object' => [
+                $this,
+                'test',
+                false,
+            ],
+            'both params are not objects' => [
+                'test',
+                'test',
+                false,
+            ],
+            'same object in both params' => [
+                $this,
+                $this,
+                true,
+            ],
+            'objects with different classes' => [
+                $this,
+                new \stdClass(),
+                false,
+            ],
+        ];
     }
 
     public function testIsEqualByIds(): void

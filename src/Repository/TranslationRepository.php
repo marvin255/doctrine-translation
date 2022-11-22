@@ -10,7 +10,7 @@ use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
 use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 use Marvin255\DoctrineTranslationBundle\Locale\LocaleFactory;
-use Symfony\Component\Translation\LocaleSwitcher;
+use Symfony\Contracts\Translation\LocaleAwareInterface;
 
 /**
  * Repository that can query translations for items.
@@ -21,7 +21,7 @@ class TranslationRepository
 
     private readonly EntityManagerInterface $em;
 
-    private readonly LocaleSwitcher $localeSwitcher;
+    private readonly LocaleAwareInterface $localeSwitcher;
 
     private readonly ClassNameManager $classNameManager;
 
@@ -29,7 +29,7 @@ class TranslationRepository
 
     public function __construct(
         EntityManagerInterface $em,
-        LocaleSwitcher $localeSwitcher,
+        LocaleAwareInterface $localeSwitcher,
         ClassNameManager $classNameManager,
         ?EntityComparator $comparator = null
     ) {
@@ -123,21 +123,27 @@ class TranslationRepository
      *
      * @param iterable<Translatable>|Translatable $items
      * @param iterable<Translation>|Translation   $translations
+     * @param Locale|null                         $fallbackLocale
      */
-    public function setItemsTranslated(iterable|Translatable $items, iterable|Translation $translations): void
+    public function setItemsTranslated(iterable|Translatable $items, iterable|Translation $translations, ?Locale $fallbackLocale = null): void
     {
         $items = $items instanceof Translatable ? [$items] : $items;
         $translations = $translations instanceof Translation ? [$translations] : $translations;
 
         foreach ($items as $item) {
             $translated = [];
+            $fallbackTranslated = [];
             foreach ($translations as $translation) {
                 $parentTranslatable = $translation->getTranslatable();
-                if ($parentTranslatable !== null && $this->comparator->isEqual($item, $parentTranslatable)) {
-                    $translated[] = $translation;
+                if ($this->comparator->isEqual($item, $parentTranslatable)) {
+                    if ($translation->getLocale()?->equals($fallbackLocale)) {
+                        $fallbackTranslated[] = $translation;
+                    } else {
+                        $translated[] = $translation;
+                    }
                 }
             }
-            $item->setTranslated($translated);
+            $item->setTranslated($translated ?: $fallbackTranslated);
         }
     }
 

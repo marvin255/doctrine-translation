@@ -21,9 +21,11 @@ class EntityComparator
     /**
      * Checks that two doctrin entities are equal.
      */
-    public function isEqual(object $a, object $b): bool
+    public function isEqual(mixed $a, mixed $b): bool
     {
-        if ($a === $b) {
+        if (!\is_object($a) || !\is_object($b)) {
+            return false;
+        } elseif ($a === $b) {
             return true;
         }
 
