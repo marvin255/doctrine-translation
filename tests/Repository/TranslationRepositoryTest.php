@@ -304,6 +304,46 @@ class TranslationRepositoryTest extends BaseCase
         );
     }
 
+    public function testSetItemsTranslatedFallbackLocale(): void
+    {
+        $locale = $this->createLocaleMock('en-US');
+        $fallbackLocale = $this->createLocaleMock('en');
+
+        $realLocaleParent = $this->createTranslatableMock();
+        $realLocaleTranslation = $this->createTranslationMock($realLocaleParent, $locale);
+        $realLocaleTranslationFallback = $this->createTranslationMock($realLocaleParent, $fallbackLocale);
+
+        $fallbackLocaleParent = $this->createTranslatableMock();
+        $fallbackLocaleTranslation = $this->createTranslationMock($fallbackLocaleParent, $fallbackLocale);
+
+        $translatableLocale = $this->createTranslatableMock([$realLocaleTranslation]);
+        $translatableFallbackLocale = $this->createTranslatableMock([$fallbackLocaleTranslation]);
+
+        $em = $this->createEmMock();
+        $localeSwitcher = $this->createLocaleSwitcherMock();
+        $classNameManager = $this->createClassNameManagerMock();
+        $comparator = $this->createEntityComparatorMock(
+            [
+                [$realLocaleParent, $translatableLocale],
+                [$fallbackLocaleParent, $translatableFallbackLocale],
+            ]
+        );
+
+        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager, $comparator);
+        $repo->setItemsTranslated(
+            [
+                $translatableLocale,
+                $translatableFallbackLocale,
+            ],
+            [
+                $realLocaleTranslation,
+                $realLocaleTranslationFallback,
+                $fallbackLocaleTranslation,
+            ],
+            $fallbackLocale
+        );
+    }
+
     public function testSetItemsTranslatedSingleItem(): void
     {
         $translationParent = $this->createTranslatableMock();
@@ -365,7 +405,7 @@ class TranslationRepositoryTest extends BaseCase
             ->getMock();
 
         $comparator->method('isEqual')->willReturnCallback(
-            function (object $a, object $b) use ($equalityMap): bool {
+            function (mixed $a, mixed $b) use ($equalityMap): bool {
                 foreach ($equalityMap as $mapItem) {
                     if (\in_array($a, $mapItem, true) && \in_array($b, $mapItem, true)) {
                         return true;

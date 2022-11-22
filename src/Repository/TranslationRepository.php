@@ -123,21 +123,27 @@ class TranslationRepository
      *
      * @param iterable<Translatable>|Translatable $items
      * @param iterable<Translation>|Translation   $translations
+     * @param Locale|null                         $fallbackLocale
      */
-    public function setItemsTranslated(iterable|Translatable $items, iterable|Translation $translations): void
+    public function setItemsTranslated(iterable|Translatable $items, iterable|Translation $translations, ?Locale $fallbackLocale = null): void
     {
         $items = $items instanceof Translatable ? [$items] : $items;
         $translations = $translations instanceof Translation ? [$translations] : $translations;
 
         foreach ($items as $item) {
             $translated = [];
+            $fallbackTranslated = [];
             foreach ($translations as $translation) {
                 $parentTranslatable = $translation->getTranslatable();
-                if ($parentTranslatable !== null && $this->comparator->isEqual($item, $parentTranslatable)) {
-                    $translated[] = $translation;
+                if ($this->comparator->isEqual($item, $parentTranslatable)) {
+                    if ($translation->getLocale()?->equals($fallbackLocale)) {
+                        $fallbackTranslated[] = $translation;
+                    } else {
+                        $translated[] = $translation;
+                    }
                 }
             }
-            $item->setTranslated($translated);
+            $item->setTranslated($translated ?: $fallbackTranslated);
         }
     }
 

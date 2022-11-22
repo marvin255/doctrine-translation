@@ -47,9 +47,9 @@ class Locale
         return $this->full;
     }
 
-    public function equals(Locale $locale): bool
+    public function equals(mixed $locale): bool
     {
-        return $this->full === $locale->getFull();
+        return $locale instanceof Locale && $this->full === $locale->getFull();
     }
 
     public function __toString(): string
