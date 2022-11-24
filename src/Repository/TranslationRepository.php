@@ -27,29 +27,38 @@ class TranslationRepository
 
     private readonly EntityComparator $comparator;
 
+    private readonly ?Locale $defaultLocale;
+
     public function __construct(
         EntityManagerInterface $em,
         LocaleAwareInterface $localeSwitcher,
         ClassNameManager $classNameManager,
-        ?EntityComparator $comparator = null
+        ?EntityComparator $comparator = null,
+        ?string $defaultLocale = null
     ) {
         $this->em = $em;
         $this->localeSwitcher = $localeSwitcher;
         $this->classNameManager = $classNameManager;
         $this->comparator = $comparator ?: new EntityComparator($em);
+        $this->defaultLocale = !empty($defaultLocale) ? LocaleFactory::create($defaultLocale) : null;
     }
 
     /**
      * Searches and sets translations related for set list of items and current app locale.
+     * If there is no translation for current locale will fallback to default locale.
      *
      * @param iterable<Translatable>|Translatable $items
      */
     public function findAndSetTranslationForCurrentLocale(iterable|Translatable $items): void
     {
-        $this->setItemsTranslated(
-            $items,
-            $this->findTranslationForCurrentLocale($items)
-        );
+        $locales = [$this->getCurrentLocale()];
+        if ($this->defaultLocale) {
+            $locales[] = $this->defaultLocale;
+        }
+
+        $translations = $this->findTranslations($items, $locales);
+
+        $this->setItemsTranslated($items, $translations, $this->defaultLocale);
     }
 
     /**
@@ -61,9 +70,7 @@ class TranslationRepository
      */
     public function findTranslationForCurrentLocale(iterable|Translatable $items): iterable
     {
-        $currentLocale = LocaleFactory::create($this->localeSwitcher->getLocale());
-
-        return $this->findTranslations($items, $currentLocale);
+        return $this->findTranslations($items, $this->getCurrentLocale());
     }
 
     /**
@@ -187,5 +194,13 @@ class TranslationRepository
         }
 
         return $localesStrings;
+    }
+
+    /**
+     * Returns current locale object.
+     */
+    private function getCurrentLocale(): Locale
+    {
+        return LocaleFactory::create($this->localeSwitcher->getLocale());
     }
 }
