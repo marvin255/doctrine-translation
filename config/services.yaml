@@ -15,12 +15,19 @@ services:
       - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
     tags: ['doctrine.event_subscriber']
 
+  Marvin255\DoctrineTranslationBundle\Repository\EntityComparator:
+    class: Marvin255\DoctrineTranslationBundle\Repository\EntityComparator
+    arguments:
+      - '@doctrine.orm.entity_manager'
+
   Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository:
     class: Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository
     arguments:
       - '@doctrine.orm.entity_manager'
       - '@translation.locale_switcher'
       - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
+      - '@Marvin255\DoctrineTranslationBundle\Repository\EntityComparator'
+      - '%kernel.default_locale%'
 
   Marvin255\DoctrineTranslationBundle\Locale\LocaleNormalizer:
     class: Marvin255\DoctrineTranslationBundle\Locale\LocaleNormalizer
