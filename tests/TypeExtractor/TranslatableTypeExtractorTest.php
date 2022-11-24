@@ -49,22 +49,10 @@ class TranslatableTypeExtractorTest extends BaseCase
         $this->assertIsArray($res);
         $this->assertCount(1, $res);
         $this->assertInstanceOf(Type::class, $res[0]);
-        $this->assertSame(Type::BUILTIN_TYPE_ARRAY, $res[0]->getBuiltinType());
-        $this->assertFalse($res[0]->isNullable());
-        $this->assertTrue($res[0]->isCollection());
-        $this->assertNull($res[0]->getClassName());
-
-        $this->assertIsArray($res[0]->getCollectionKeyTypes());
-        $this->assertCount(1, $res[0]->getCollectionKeyTypes());
-        $this->assertInstanceOf(Type::class, $res[0]->getCollectionKeyTypes()[0]);
-        $this->assertSame(Type::BUILTIN_TYPE_INT, $res[0]->getCollectionKeyTypes()[0]->getBuiltinType());
-        $this->assertFalse($res[0]->getCollectionKeyTypes()[0]->isNullable());
-
-        $this->assertIsArray($res[0]->getCollectionValueTypes());
-        $this->assertCount(1, $res[0]->getCollectionValueTypes());
-        $this->assertInstanceOf(Type::class, $res[0]->getCollectionValueTypes()[0]);
-        $this->assertSame($classNameTranslation, $res[0]->getCollectionValueTypes()[0]->getClassName());
-        $this->assertFalse($res[0]->getCollectionValueTypes()[0]->isNullable());
+        $this->assertSame(Type::BUILTIN_TYPE_OBJECT, $res[0]->getBuiltinType());
+        $this->assertTrue($res[0]->isNullable());
+        $this->assertFalse($res[0]->isCollection());
+        $this->assertSame($classNameTranslation, $res[0]->getClassName());
     }
 
     public function testGetTypeTranslations(): void

@@ -131,15 +131,15 @@ class TranslationRepository
         $translations = $translations instanceof Translation ? [$translations] : $translations;
 
         foreach ($items as $item) {
-            $translated = [];
-            $fallbackTranslated = [];
+            $translated = null;
+            $fallbackTranslated = null;
             foreach ($translations as $translation) {
-                $parentTranslatable = $translation->getTranslatable();
-                if ($this->comparator->isEqual($item, $parentTranslatable)) {
-                    if ($translation->getLocale()?->equals($fallbackLocale)) {
-                        $fallbackTranslated[] = $translation;
+                if ($this->comparator->isEqual($item, $translation->getTranslatable())) {
+                    if ($translation->getLocale()?->equals($fallbackLocale) === true) {
+                        $fallbackTranslated = $translation;
                     } else {
-                        $translated[] = $translation;
+                        $translated = $translation;
+                        break;
                     }
                 }
             }

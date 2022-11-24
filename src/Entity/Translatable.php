@@ -28,9 +28,9 @@ abstract class Translatable
     protected Collection $translations;
 
     /**
-     * @psalm-var array<int, R>
+     * @psalm-var R|null
      */
-    private array $translated = [];
+    private ?Translation $translated = null;
 
     public function __construct()
     {
@@ -96,31 +96,24 @@ abstract class Translatable
     }
 
     /**
-     * This field can be used to provide external translations and avoid loading list of related translations.
-     * E.g. load translations for whole list of items using just one query and set correct translations for each item.
+     * This field can be used to provide external translation and avoid loading list of all related translations.
+     * E.g. load translations for whole list of items using just one query and set correct translation for each item.
      *
-     * @psalm-param R|iterable<R> $translated
+     * @psalm-param R|null $translated
      */
-    public function setTranslated(Translation|iterable $translated): self
+    public function setTranslated(?Translation $translated): self
     {
-        if ($translated instanceof Translation) {
-            $this->translated = [$translated];
-        } else {
-            $this->translated = [];
-            foreach ($translated as $translation) {
-                $this->translated[] = $translation;
-            }
-        }
+        $this->translated = $translated;
 
         return $this;
     }
 
     /**
-     * Returns list of provided translations.
+     * Returns provided translation.
      *
-     * @psalm-return array<int, R>
+     * @psalm-return R|null
      */
-    public function getTranslated(): array
+    public function getTranslated(): ?Translation
     {
         return $this->translated;
     }

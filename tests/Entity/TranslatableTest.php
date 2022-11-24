@@ -84,12 +84,12 @@ class TranslatableTest extends BaseCase
     }
 
     /**
-     * @psalm-param Translation|iterable<Translation> $set
-     * @psalm-param array<Translation> $reference
+     * @psalm-param Translation|null $set
+     * @psalm-param Translation|null $reference
      *
      * @dataProvider provideSetGetTranslated
      */
-    public function testSetGetTranslated(Translation|iterable $set, array $reference): void
+    public function testSetGetTranslated(?Translation $set, ?Translation $reference): void
     {
         /** @var Translatable */
         $model = $this->getMockForAbstractClass(Translatable::class);
@@ -101,20 +101,15 @@ class TranslatableTest extends BaseCase
     public function provideSetGetTranslated(): array
     {
         $translation = $this->createTranslationMock();
-        $translation1 = $this->createTranslationMock();
 
         return [
             'single translation' => [
                 $translation,
-                [$translation],
+                $translation,
             ],
-            'list of translations region' => [
-                [$translation, $translation1],
-                [$translation, $translation1],
-            ],
-            'empty array' => [
-                [],
-                [],
+            'null' => [
+                null,
+                null,
             ],
         ];
     }

@@ -26,7 +26,7 @@ class TranslationRepositoryTest extends BaseCase
     {
         $translationParent = $this->createTranslatableMock();
         $translation = $this->createTranslationMock($translationParent);
-        $translatable = $this->createTranslatableMock([$translation]);
+        $translatable = $this->createTranslatableMock($translation);
 
         $qb = $this->createQueryBuilderMock(
             [
@@ -94,7 +94,7 @@ class TranslationRepositoryTest extends BaseCase
     {
         $translationParent = $this->createTranslatableMock();
         $translation = $this->createTranslationMock($translationParent);
-        $translatable = $this->createTranslatableMock([$translation]);
+        $translatable = $this->createTranslatableMock($translation);
         $locale = $this->createLocaleMock();
 
         $qb = $this->createQueryBuilderMock(
@@ -275,10 +275,10 @@ class TranslationRepositoryTest extends BaseCase
         $translationEqualParentSecond = $this->createTranslatableMock();
         $translationEqualSecond = $this->createTranslationMock($translationEqualParentSecond);
 
-        $translatableEqual = $this->createTranslatableMock([$translationEqual, $translationEqualSecond]);
+        $translatableEqual = $this->createTranslatableMock($translationEqual);
 
         $translationNonEqual = $this->createTranslationMock();
-        $translatableNonEqual = $this->createTranslatableMock([]);
+        $translatableNonEqual = $this->createTranslatableMock(null);
 
         $em = $this->createEmMock();
         $localeSwitcher = $this->createLocaleSwitcherMock();
@@ -316,8 +316,8 @@ class TranslationRepositoryTest extends BaseCase
         $fallbackLocaleParent = $this->createTranslatableMock();
         $fallbackLocaleTranslation = $this->createTranslationMock($fallbackLocaleParent, $fallbackLocale);
 
-        $translatableLocale = $this->createTranslatableMock([$realLocaleTranslation]);
-        $translatableFallbackLocale = $this->createTranslatableMock([$fallbackLocaleTranslation]);
+        $translatableLocale = $this->createTranslatableMock($realLocaleTranslation);
+        $translatableFallbackLocale = $this->createTranslatableMock($fallbackLocaleTranslation);
 
         $em = $this->createEmMock();
         $localeSwitcher = $this->createLocaleSwitcherMock();
@@ -348,7 +348,7 @@ class TranslationRepositoryTest extends BaseCase
     {
         $translationParent = $this->createTranslatableMock();
         $translation = $this->createTranslationMock($translationParent);
-        $translatable = $this->createTranslatableMock([$translation]);
+        $translatable = $this->createTranslatableMock($translation);
 
         $em = $this->createEmMock();
         $localeSwitcher = $this->createLocaleSwitcherMock();
