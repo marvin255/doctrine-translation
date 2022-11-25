@@ -4,20 +4,17 @@ declare(strict_types=1);
 
 namespace Marvin255\DoctrineTranslationBundle\Tests\Repository;
 
-use Doctrine\ORM\AbstractQuery;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\QueryBuilder;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
 use Marvin255\DoctrineTranslationBundle\Repository\EntityComparator;
 use Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository;
-use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
+use Marvin255\DoctrineTranslationBundle\Tests\EmCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Contracts\Translation\LocaleAwareInterface;
 
 /**
  * @internal
  */
-class TranslationRepositoryTest extends BaseCase
+class TranslationRepositoryTest extends EmCase
 {
     public const TRANSLATABLES_WHERE = TranslationRepository::QUERY_ALIAS . '.' . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)';
     public const LOCALES_WHERE = [[TranslationRepository::QUERY_ALIAS . '.' . Translation::LOCALE_FIELD_NAME . ' IN (:locales)']];
@@ -42,7 +39,7 @@ class TranslationRepositoryTest extends BaseCase
             [$translation]
         );
 
-        $em = $this->createEmMock($qb);
+        $em = $this->createEmMock([], $qb);
         $localeSwitcher = $this->createLocaleSwitcherMock();
         $classNameManager = $this->createBasicClassNameManagerMock($translatable, $translation);
         $comparator = $this->createEntityComparatorMock($translationParent, $translatable);
@@ -82,7 +79,7 @@ class TranslationRepositoryTest extends BaseCase
             [$translationDefault, $translation, $translationFallback]
         );
 
-        $em = $this->createEmMock($qb);
+        $em = $this->createEmMock([], $qb);
         $localeSwitcher = $this->createLocaleSwitcherMock($localeStr);
         $classNameManager = $this->createBasicClassNameManagerMock($translatable, $translation);
         $classNameManager = $this->createClassNameManagerMock(
@@ -124,7 +121,7 @@ class TranslationRepositoryTest extends BaseCase
             $reference
         );
 
-        $em = $this->createEmMock($qb);
+        $em = $this->createEmMock([], $qb);
         $localeSwitcher = $this->createLocaleSwitcherMock();
         $classNameManager = $this->createClassNameManagerMock(
             self::BASE_CLASS_NAMES_MAP,
@@ -160,7 +157,7 @@ class TranslationRepositoryTest extends BaseCase
             [$translation]
         );
 
-        $em = $this->createEmMock($qb);
+        $em = $this->createEmMock([], $qb);
         $localeSwitcher = $this->createLocaleSwitcherMock();
         $classNameManager = $this->createBasicClassNameManagerMock($translatable, $translation);
         $comparator = $this->createEntityComparatorMock($translationParent, $translatable);
@@ -215,7 +212,7 @@ class TranslationRepositoryTest extends BaseCase
             [$reference[1]]
         );
 
-        $em = $this->createEmMock([$qb, $qb1]);
+        $em = $this->createEmMock([], [$qb, $qb1]);
         $localeSwitcher = $this->createLocaleSwitcherMock();
         $classNameManager = $this->createClassNameManagerMock(
             [
@@ -264,7 +261,7 @@ class TranslationRepositoryTest extends BaseCase
             $reference
         );
 
-        $em = $this->createEmMock($qb);
+        $em = $this->createEmMock([], $qb);
         $localeSwitcher = $this->createLocaleSwitcherMock();
         $classNameManager = $this->createBasicClassNameManagerMock($translatable);
 
@@ -294,7 +291,7 @@ class TranslationRepositoryTest extends BaseCase
             $reference
         );
 
-        $em = $this->createEmMock($qb);
+        $em = $this->createEmMock([], $qb);
         $localeSwitcher = $this->createLocaleSwitcherMock();
         $classNameManager = $this->createBasicClassNameManagerMock($translatable);
 
@@ -419,26 +416,6 @@ class TranslationRepositoryTest extends BaseCase
     }
 
     /**
-     * @psalm-param QueryBuilder[]|QueryBuilder $qb
-     */
-    private function createEmMock(array|QueryBuilder $qb = []): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface&MockObject */
-        $em = $this->getMockBuilder(EntityManagerInterface::class)->getMock();
-
-        $qb = $qb instanceof QueryBuilder ? [$qb] : $qb;
-        if (!empty($qb)) {
-            $em->expects($this->exactly(\count($qb)))
-                ->method('createQueryBuilder')
-                ->willReturnOnConsecutiveCalls(...$qb);
-        } else {
-            $em->expects($this->never())->method('createQueryBuilder');
-        }
-
-        return $em;
-    }
-
-    /**
      * @param array<array<object>>|object $param1
      * @param ?object                     $param2
      */
@@ -464,73 +441,5 @@ class TranslationRepositoryTest extends BaseCase
         );
 
         return $comparator;
-    }
-
-    /**
-     * @psalm-param array<string, mixed>|null $queryParts
-     * @psalm-param array<int, mixed> $results
-     *
-     * @psalm-suppress MixedArgument
-     */
-    private function createQueryBuilderMock(?array $queryParts = null, array $results = []): QueryBuilder
-    {
-        /** @var QueryBuilder&MockObject */
-        $qb = $this->getMockBuilder(QueryBuilder::class)->disableOriginalConstructor()->getMock();
-
-        if (isset($queryParts['select']) && \is_string($queryParts['select'])) {
-            $qb->expects($this->once())
-                ->method('select')
-                ->with($this->equalTo($queryParts['select']))
-                ->willReturnSelf();
-        } else {
-            $qb->method('select')->willReturnSelf();
-        }
-
-        if (isset($queryParts['from']) && \is_array($queryParts['from'])) {
-            $qb->expects($this->once())
-                ->method('from')
-                ->with(
-                    $this->equalTo($queryParts['from'][0] ?? null),
-                    $this->equalTo($queryParts['from'][1] ?? null)
-                )
-                ->willReturnSelf();
-        } else {
-            $qb->method('from')->willReturnSelf();
-        }
-
-        if (isset($queryParts['where']) && \is_string($queryParts['where'])) {
-            $qb->expects($this->once())
-                ->method('where')
-                ->with($this->equalTo($queryParts['where']))
-                ->willReturnSelf();
-        } else {
-            $qb->method('where')->willReturnSelf();
-        }
-
-        if (isset($queryParts['andWhere']) && \is_array($queryParts['andWhere'])) {
-            $qb->expects($this->exactly(\count($queryParts['andWhere'])))
-                ->method('andWhere')
-                ->withConsecutive(...$queryParts['andWhere'])
-                ->willReturnSelf();
-        } else {
-            $qb->method('andWhere')->willReturnSelf();
-        }
-
-        if (isset($queryParts['setParameter']) && \is_array($queryParts['setParameter'])) {
-            $qb->expects($this->exactly(\count($queryParts['setParameter'])))
-                ->method('setParameter')
-                ->withConsecutive(...$queryParts['setParameter'])
-                ->willReturnSelf();
-        } else {
-            $qb->method('setParameter')->willReturnSelf();
-        }
-
-        /** @var AbstractQuery&MockObject */
-        $query = $this->getMockBuilder(AbstractQuery::class)->disableOriginalConstructor()->getMock();
-        $query->method('getResult')->willReturn($results);
-
-        $qb->method('getQuery')->willReturn($query);
-
-        return $qb;
     }
 }

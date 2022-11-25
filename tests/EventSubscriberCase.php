@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
- * Base test case for event subscriber tests.
+ * Abstract class with event subscriber related helpers.
  */
 abstract class EventSubscriberCase extends BaseCase
 {
