@@ -8,11 +8,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
-use Marvin255\DoctrineTranslationBundle\Locale\Locale;
-use Marvin255\DoctrineTranslationBundle\Locale\LocaleFactory;
-use Symfony\Contracts\Translation\LocaleAwareInterface;
-use Doctrine\ORM\Mapping\ClassMetadataFactory;
-use InvalidArgumentException;
 
 /**
  * Handler object that can persist translation to the storage.
@@ -33,18 +28,17 @@ class TranslatableStateHandler
 
     /**
      * Replace all translations for set translatable to the given list of translations and save them.
-     * 
+     *
      * @psalm-param iterable<Translation> $translations
      */
     public function replaceTranslations(Translatable $translatable, iterable $translations): void
     {
-        $this->transferContentDataBetweenTranslations($translations[0], $translations[1]);
         $translationClass = $this->classNameManager->getTranslationClassForTranslatableEntity($translatable);
 
         $toUpdateItems = [];
         foreach ($translations as $translation) {
             if (!is_a($translation, $translationClass)) {
-                throw new InvalidArgumentException("All translations must implement '{$translationClass}'");
+                throw new \InvalidArgumentException("All translations must implement '{$translationClass}'");
             }
             $translationLocale = $translation->getLocale();
             $relatedTranslation = $translationLocale ? $translatable->findTranslationByLocale($translationLocale) : null;
@@ -58,7 +52,7 @@ class TranslatableStateHandler
         }
 
         foreach ($translatable->getTranslations() as $translation) {
-            if (!in_array($translation, $toUpdateItems, true)) {
+            if (!\in_array($translation, $toUpdateItems, true)) {
                 $this->em->remove($translation);
                 $translatable->removeTranslation($translation);
             }
@@ -72,7 +66,7 @@ class TranslatableStateHandler
      */
     private function transferContentDataBetweenTranslations(Translation $from, Translation $to): void
     {
-        $meta = $this->em->getClassMetadata(get_class($from));
+        $meta = $this->em->getClassMetadata(\get_class($from));
         $readonlyFields = [
             Translation::ID_COLUMN_NAME,
             Translation::LOCALE_FIELD_NAME,
@@ -80,11 +74,11 @@ class TranslatableStateHandler
         ];
 
         foreach ($meta->getFieldNames() as $fieldName) {
-            if (in_array($fieldName, $readonlyFields, true)) {
+            if (\in_array($fieldName, $readonlyFields, true)) {
                 continue;
             }
             $meta->setFieldValue(
-                $to, 
+                $to,
                 $fieldName,
                 $meta->getFieldValue($from, $fieldName)
             );
