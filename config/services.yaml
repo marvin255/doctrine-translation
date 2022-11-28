@@ -29,6 +29,12 @@ services:
       - '@Marvin255\DoctrineTranslationBundle\Repository\EntityComparator'
       - '%kernel.default_locale%'
 
+  Marvin255\DoctrineTranslationBundle\StateHandler\TranslatableStateHandler:
+    class: Marvin255\DoctrineTranslationBundle\StateHandler\TranslatableStateHandler
+    arguments:
+      - '@doctrine.orm.entity_manager'
+      - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
+
   Marvin255\DoctrineTranslationBundle\Locale\LocaleNormalizer:
     class: Marvin255\DoctrineTranslationBundle\Locale\LocaleNormalizer
     tags: ['serializer.normalizer', 'serializer.denormalizer']
