@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Marvin255\DoctrineTranslationBundle\Repository;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
+use Marvin255\DoctrineTranslationBundle\EntityManager\EntityManagerProvider;
 use Marvin255\DoctrineTranslationBundle\Locale\Locale;
 use Marvin255\DoctrineTranslationBundle\Locale\LocaleFactory;
 use Symfony\Contracts\Translation\LocaleAwareInterface;
@@ -19,27 +19,23 @@ class TranslationRepository
 {
     public const QUERY_ALIAS = 't';
 
-    private readonly EntityManagerInterface $em;
+    private readonly EntityManagerProvider $em;
 
     private readonly LocaleAwareInterface $localeSwitcher;
 
     private readonly ClassNameManager $classNameManager;
 
-    private readonly EntityComparator $comparator;
-
     private readonly ?Locale $defaultLocale;
 
     public function __construct(
-        EntityManagerInterface $em,
+        EntityManagerProvider $em,
         LocaleAwareInterface $localeSwitcher,
         ClassNameManager $classNameManager,
-        ?EntityComparator $comparator = null,
         ?string $defaultLocale = null
     ) {
         $this->em = $em;
         $this->localeSwitcher = $localeSwitcher;
         $this->classNameManager = $classNameManager;
-        $this->comparator = $comparator ?: new EntityComparator($em);
         $this->defaultLocale = !empty($defaultLocale) ? LocaleFactory::create($defaultLocale) : null;
     }
 
@@ -108,7 +104,7 @@ class TranslationRepository
 
         $result = [];
         foreach ($itemsByClasses as $translationClass => $translatableItems) {
-            $qb = $this->em->createQueryBuilder();
+            $qb = $this->em->createQueryBuilder($translationClass);
             $qb->select(self::QUERY_ALIAS);
             $qb->from($translationClass, self::QUERY_ALIAS);
             $qb->where(self::QUERY_ALIAS . '.' . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)');
@@ -141,7 +137,7 @@ class TranslationRepository
             $translated = null;
             $fallbackTranslated = null;
             foreach ($translations as $translation) {
-                if ($this->comparator->isEqual($item, $translation->getTranslatable())) {
+                if ($this->em->getEntityComparator()->isEqual($item, $translation->getTranslatable())) {
                     if ($translation->getLocale()?->equals($fallbackLocale) === true) {
                         $fallbackTranslated = $translation;
                     } else {
