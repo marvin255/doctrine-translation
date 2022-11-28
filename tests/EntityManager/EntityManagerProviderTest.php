@@ -28,6 +28,24 @@ class EntityManagerProviderTest extends EmCase
         $this->assertSame($comparator, $comparator1);
     }
 
+    public function testGetClassMetadataForEntity(): void
+    {
+        $className = \stdClass::class;
+        $entity = new \stdClass();
+        $meta = $this->getClassMetadataMock();
+        $em = $this->getEntityManagerMock();
+        $em->expects($this->once())
+            ->method('getClassMetadata')
+            ->with($this->equalTo($className))
+            ->willReturn($meta);
+        $registry = $this->getManagerRegistryMock($className, $em);
+
+        $provider = new EntityManagerProvider($registry);
+        $resultMeta = $provider->getClassMetadataForEntity($entity);
+
+        $this->assertSame($meta, $resultMeta);
+    }
+
     public function testGetClassMetadata(): void
     {
         $className = EntityManagerProvider::class;

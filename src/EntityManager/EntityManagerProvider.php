@@ -36,6 +36,16 @@ class EntityManagerProvider
     }
 
     /**
+     * Return class metadata item for the given object.
+     */
+    public function getClassMetadataForEntity(object $enity): ClassMetadata
+    {
+        $class = \get_class($enity);
+
+        return $this->getClassMetadata($class);
+    }
+
+    /**
      * Return class metadata item for the given class.
      *
      * @psalm-param class-string $class
