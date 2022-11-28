@@ -1,7 +1,12 @@
 services:
 
-  Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager:
-    class: Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager
+  Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager: ~
+
+  Marvin255\DoctrineTranslationBundle\Locale\LocaleProvider:
+    class: Marvin255\DoctrineTranslationBundle\Locale\LocaleProvider
+    arguments:
+      - '@translation.locale_switcher'
+      - '%kernel.default_locale%'
 
   Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslatableMetaDataEventSubscriber:
     class: Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslatableMetaDataEventSubscriber
@@ -15,15 +20,20 @@ services:
       - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
     tags: ['doctrine.event_subscriber']
 
+  Marvin255\DoctrineTranslationBundle\EntityManager\EntityManagerProvider:
+    class: Marvin255\DoctrineTranslationBundle\EntityManager\EntityManagerProvider
+    arguments:
+      - '@doctrine'
+
   Marvin255\DoctrineTranslationBundle\Repository\EntityComparator:
     class: Marvin255\DoctrineTranslationBundle\Repository\EntityComparator
     arguments:
-      - '@doctrine.orm.entity_manager'
+      - '@Marvin255\DoctrineTranslationBundle\EntityManager\EntityManagerProvider'
 
   Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository:
     class: Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository
     arguments:
-      - '@doctrine.orm.entity_manager'
+      - '@doctrine'
       - '@translation.locale_switcher'
       - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
       - '@Marvin255\DoctrineTranslationBundle\Repository\EntityComparator'
