@@ -33,26 +33,25 @@ class TranslatableStateHandler
      */
     public function replaceTranslations(Translatable $translatable, iterable $translations): void
     {
-        $translationClass = $this->classNameManager->getTranslationClassForTranslatableEntity($translatable);
-
-        $toUpdateItems = [];
+        $itemsToChange = [];
         foreach ($translations as $translation) {
-            if (!is_a($translation, $translationClass)) {
-                throw new \InvalidArgumentException("All translations must implement '{$translationClass}'");
+            if (!$this->classNameManager->areItemsClassesRelated($translatable, $translation)) {
+                throw new \InvalidArgumentException('Translation is unrelated to the translatable');
             }
-            $translationLocale = $translation->getLocale();
-            $relatedTranslation = $translationLocale ? $translatable->findTranslationByLocale($translationLocale) : null;
+            $locale = $translation->getLocale();
+            $relatedTranslation = $locale ? $translatable->findTranslationByLocale($locale) : null;
             if ($relatedTranslation === null) {
                 $this->em->persist($translation);
                 $translatable->addTranslation($translation);
+                $itemsToChange[] = $translation;
             } else {
                 $this->transferContentDataBetweenTranslations($translation, $relatedTranslation);
-                $toUpdateItems[] = $relatedTranslation;
+                $itemsToChange[] = $relatedTranslation;
             }
         }
 
         foreach ($translatable->getTranslations() as $translation) {
-            if (!\in_array($translation, $toUpdateItems, true)) {
+            if (!\in_array($translation, $itemsToChange, true)) {
                 $this->em->remove($translation);
                 $translatable->removeTranslation($translation);
             }

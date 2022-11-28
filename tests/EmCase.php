@@ -17,6 +17,8 @@ abstract class EmCase extends BaseCase
 {
     /**
      * @psalm-param array<int, mixed[]> $data
+     *
+     * @return ClassMetadata&MockObject
      */
     protected function createMetaMock(array $data = []): ClassMetadata
     {
@@ -112,6 +114,8 @@ abstract class EmCase extends BaseCase
     /**
      * @psalm-param array<string, ClassMetadata> $classMetaDataMap
      * @psalm-param QueryBuilder[]|QueryBuilder $qb
+     *
+     * @return EntityManagerInterface&MockObject
      */
     protected function createEmMock(array $classMetaDataMap = [], array|QueryBuilder $qb = []): EntityManagerInterface
     {
