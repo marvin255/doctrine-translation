@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Marvin255\DoctrineTranslationBundle\Tests\EntityManager;
 
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Marvin255\DoctrineTranslationBundle\EntityManager\EntityComparator;
 use Marvin255\DoctrineTranslationBundle\EntityManager\EntityManagerProvider;
 use Marvin255\DoctrineTranslationBundle\Tests\EmCase;
@@ -18,7 +19,7 @@ class EntityComparatorTest extends EmCase
      */
     public function testIsEqual(mixed $a, mixed $b, bool $reference, ?EntityManagerProvider $em = null): void
     {
-        $em = $em ?: $this->createEmProviderMetaMock();
+        $em = $em ?: $this->getEntityManagerProviderMockMeta();
 
         $comparator = new EntityComparator($em);
         $res = $comparator->isEqual($a, $b);
@@ -54,35 +55,52 @@ class EntityComparatorTest extends EmCase
             ],
             'objects with different classes' => [
                 $this,
-                new \stdClass(),
+                $a,
                 false,
             ],
             'equal by id' => [
                 $a,
                 $b,
                 true,
-                $this->createEmProviderMetaMock(
-                    [
-                        \get_class($a) => [
-                            [$a, [1, 2]],
-                            [$b, [1, 2]],
-                        ],
-                    ]
+                $this->getEntityManagerProviderMockMeta(
+                    \stdClass::class,
+                    $this->getClassMetadataMockIdentifiers([$a, 1, 2], [$b, 1, 2])
                 ),
             ],
-            'don\'t equal by id' => [
+            "don't equal by id" => [
                 $a,
                 $b,
                 false,
-                $this->createEmProviderMetaMock(
-                    [
-                        \get_class($a) => [
-                            [$a, [1]],
-                            [$b, [2]],
-                        ],
-                    ]
+                $this->getEntityManagerProviderMockMeta(
+                    \stdClass::class,
+                    $this->getClassMetadataMockIdentifiers([$a, 1, 1], [$b, 2, 2])
                 ),
             ],
         ];
+    }
+
+    /**
+     * @param mixed[][] $identifiers
+     *
+     * @return ClassMetadata&MockObject
+     */
+    private function getClassMetadataMockIdentifiers(...$identifiers): ClassMetadata
+    {
+        $meta = $this->getClassMetadataMock();
+
+        $meta->method('getIdentifierValues')->willReturnCallback(
+            function (object $toCheck) use ($identifiers): array {
+                $return = [];
+                foreach ($identifiers as $identifier) {
+                    if (isset($identifier[0]) && $identifier[0] === $toCheck) {
+                        $return = \array_slice($identifier, 1);
+                    }
+                }
+
+                return $return;
+            }
+        );
+
+        return $meta;
     }
 }

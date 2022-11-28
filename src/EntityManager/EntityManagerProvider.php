@@ -65,7 +65,7 @@ class EntityManagerProvider
         $em = $this->managerRegistry->getManagerForClass($class);
 
         if (!($em instanceof EntityManagerInterface)) {
-            throw new \RuntimeException('Entity manager must implements ' . EntityManagerInterface::class);
+            throw new \InvalidArgumentException("Can't find entity manager for class '{$class}'");
         }
 
         return $em;
