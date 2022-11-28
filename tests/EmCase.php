@@ -8,6 +8,7 @@ use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\QueryBuilder;
+use Marvin255\DoctrineTranslationBundle\EntityManager\EntityManagerProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 
 /**
@@ -15,34 +16,6 @@ use PHPUnit\Framework\MockObject\MockObject;
  */
 abstract class EmCase extends BaseCase
 {
-    /**
-     * @psalm-param array<int, mixed[]> $data
-     *
-     * @return ClassMetadata&MockObject
-     */
-    protected function createMetaMock(array $data = []): ClassMetadata
-    {
-        /** @var ClassMetadata&MockObject */
-        $meta = $this->getMockBuilder(ClassMetadata::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $meta->method('getIdentifierValues')->willReturnCallback(
-            function (object $toCheck) use ($data): array {
-                $return = [mt_rand(), mt_rand()];
-                foreach ($data as $datum) {
-                    if (isset($datum[0]) && $datum[0] === $toCheck) {
-                        $return = (array) ($datum[1] ?? []);
-                    }
-                }
-
-                return $return;
-            }
-        );
-
-        return $meta;
-    }
-
     /**
      * @psalm-param array<string, mixed>|null $queryParts
      * @psalm-param array<int, mixed> $results
@@ -112,6 +85,23 @@ abstract class EmCase extends BaseCase
     }
 
     /**
+     * @psalm-param array<string, mixed[][]> $classMetaDataMap
+     *
+     * @return EntityManagerProvider&MockObject
+     */
+    protected function createEmProviderMetaMock(array $classMetaDataMap = []): EntityManagerProvider
+    {
+        /** @var EntityManagerProvider&MockObject */
+        $em = $this->getMockBuilder(EntityManagerProvider::class)->disableOriginalConstructor()->getMock();
+
+        $em->method('getClassMetadata')->willReturnCallback(
+            fn (string $toCheck): ClassMetadata => $this->createMetaMock($classMetaDataMap[$toCheck] ?? null)
+        );
+
+        return $em;
+    }
+
+    /**
      * @psalm-param array<string, ClassMetadata> $classMetaDataMap
      * @psalm-param QueryBuilder[]|QueryBuilder $qb
      *
@@ -134,5 +124,35 @@ abstract class EmCase extends BaseCase
         }
 
         return $em;
+    }
+
+    /**
+     * @psalm-param mixed[][]|null $data
+     *
+     * @return ClassMetadata&MockObject
+     */
+    private function createMetaMock(?array $data = null): ClassMetadata
+    {
+        /** @var ClassMetadata&MockObject */
+        $meta = $this->getMockBuilder(ClassMetadata::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        if ($data !== null) {
+            $meta->method('getIdentifierValues')->willReturnCallback(
+                function (object $toCheck) use ($data): array {
+                    $return = [mt_rand(), mt_rand()];
+                    foreach ($data as $datum) {
+                        if (isset($datum[0]) && $datum[0] === $toCheck) {
+                            $return = (array) ($datum[1] ?? []);
+                        }
+                    }
+
+                    return $return;
+                }
+            );
+        }
+
+        return $meta;
     }
 }

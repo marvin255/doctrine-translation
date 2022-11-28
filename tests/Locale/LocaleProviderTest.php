@@ -6,6 +6,7 @@ namespace Marvin255\DoctrineTranslationBundle\Tests\Locale;
 
 use Marvin255\DoctrineTranslationBundle\Locale\LocaleProvider;
 use Marvin255\DoctrineTranslationBundle\Tests\BaseCase;
+use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Contracts\Translation\LocaleAwareInterface;
 
 /**
@@ -13,9 +14,6 @@ use Symfony\Contracts\Translation\LocaleAwareInterface;
  */
 class LocaleProviderTest extends BaseCase
 {
-    /**
-     * @test
-     */
     public function testGetCurrentLocale(): void
     {
         $locale = 'en';
@@ -26,9 +24,6 @@ class LocaleProviderTest extends BaseCase
         $this->assertSame($locale, $provider->getCurrentLocale()->getFull());
     }
 
-    /**
-     * @test
-     */
     public function testGetCurrentLocaleEmptyLocale(): void
     {
         $switcher = $this->createLocaleSwitcherMock('');
@@ -39,9 +34,6 @@ class LocaleProviderTest extends BaseCase
         $provider->getCurrentLocale();
     }
 
-    /**
-     * @test
-     */
     public function testGetDefaultLocale(): void
     {
         $switcher = $this->createLocaleSwitcherMock();
@@ -52,9 +44,6 @@ class LocaleProviderTest extends BaseCase
         $this->assertSame($defaultLocale, $provider->getDefaultLocale()->getFull());
     }
 
-    /**
-     * @test
-     */
     public function testGetDefaultLocaleEmptyLocale(): void
     {
         $switcher = $this->createLocaleSwitcherMock();

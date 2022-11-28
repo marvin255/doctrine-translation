@@ -20,7 +20,7 @@ class LocaleProvider
     public function __construct(LocaleAwareInterface $localeSwitcher, ?string $defaultLocaleString = null)
     {
         $this->localeSwitcher = $localeSwitcher;
-        $this->defaultLocaleString = (string) $defaultLocaleString;
+        $this->defaultLocaleString = $defaultLocaleString ?? '';
     }
 
     /**
