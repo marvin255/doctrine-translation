@@ -80,9 +80,9 @@ abstract class Translation
     /**
      * Returns parent object related to this translation.
      *
-     * @psalm-param P $translatable
+     * @psalm-param P|null $translatable
      */
-    public function setTranslatable(Translatable $translatable): self
+    public function setTranslatable(?Translatable $translatable): self
     {
         $this->translatable = $translatable;
 

@@ -15,10 +15,14 @@ class TranslatableTest extends BaseCase
 {
     public function testAddTranslation(): void
     {
-        $translation = $this->createTranslationMock();
-
         /** @var Translatable */
         $model = $this->getMockForAbstractClass(Translatable::class);
+
+        $translation = $this->createTranslationMock();
+        $translation->expects($this->once())
+            ->method('setTranslatable')
+            ->with($this->identicalTo($model))
+            ->willReturnSelf();
 
         $this->assertSame($model, $model->addTranslation($translation));
         $this->assertSame([$translation], $model->getTranslations());
@@ -40,10 +44,16 @@ class TranslatableTest extends BaseCase
 
     public function testRemoveTranslation(): void
     {
-        $translation = $this->createTranslationMock();
-
         /** @var Translatable */
         $model = $this->getMockForAbstractClass(Translatable::class);
+
+        $translation = $this->createTranslationMock();
+        $translation->expects($this->exactly(2))
+            ->method('setTranslatable')
+            ->withConsecutive(
+                [$this->identicalTo($model)],
+                [$this->equalTo(null)]
+            );
 
         $this->assertSame($model, $model->addTranslation($translation));
         $this->assertSame($model, $model->removeTranslation($translation));

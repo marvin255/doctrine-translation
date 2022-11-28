@@ -64,7 +64,10 @@ abstract class Translatable
      */
     public function addTranslation(Translation $translation): self
     {
-        $this->translations->add($translation);
+        if (!$this->translations->contains($translation)) {
+            $translation->setTranslatable($this);
+            $this->translations->add($translation);
+        }
 
         return $this;
     }
@@ -76,7 +79,10 @@ abstract class Translatable
      */
     public function removeTranslation(Translation $translation): self
     {
-        $this->translations->removeElement($translation);
+        if ($this->translations->contains($translation)) {
+            $translation->setTranslatable(null);
+            $this->translations->removeElement($translation);
+        }
 
         return $this;
     }
