@@ -44,6 +44,9 @@ abstract class BaseCase extends TestCase
         return $translatable;
     }
 
+    /**
+     * @return Translation&MockObject
+     */
     protected function createTranslationMock(?Translatable $translatable = null, ?Locale $locale = null, ?int $id = null): Translation
     {
         /** @var Translation&MockObject */
