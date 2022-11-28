@@ -24,6 +24,8 @@ abstract class BaseCase extends TestCase
 
     /**
      * @psalm-param class-string $class
+     *
+     * @return Translatable&MockObject
      */
     protected function createTranslatableMock(mixed $translated = false): Translatable
     {
@@ -118,17 +120,29 @@ abstract class BaseCase extends TestCase
             fn (string $translation): string => array_search($translation, $translatableTranslationPairs) ?: ''
         );
 
-        $manager->method('getTranslationClassForTranslatableEntity')->willReturnCallback(
-            function (object $entity) use ($translatableTranslationPairs, $entityClassMap): string {
-                $class = \get_class($entity);
-                foreach ($entityClassMap as $classKey => $objects) {
-                    if ($objects === $entity || (\is_array($objects) && \in_array($entity, $objects, true))) {
-                        $class = $classKey;
-                        break;
-                    }
+        $getClassForObject = function (object $entity) use ($entityClassMap): string {
+            $result = '';
+            foreach ($entityClassMap as $classKey => $objects) {
+                if ($objects === $entity || (\is_array($objects) && \in_array($entity, $objects, true))) {
+                    $result = $classKey;
+                    break;
                 }
+            }
 
-                return $translatableTranslationPairs[$class] ?? '';
+            return $result;
+        };
+
+        $manager->method('getTranslationClassForTranslatableEntity')->willReturnCallback(
+            fn (object $entity): string => $translatableTranslationPairs[$getClassForObject($entity)] ?? ''
+        );
+
+        $manager->method('areItemsClassesRelated')->willReturnCallback(
+            function (mixed $translatable, mixed $translation) use ($getClassForObject, $translatableTranslationPairs): bool {
+                $translatableClass = \is_object($translatable) ? $getClassForObject($translatable) : '';
+                $translationClass = \is_object($translation) ? $getClassForObject($translation) : '';
+
+                return isset($translatableTranslationPairs[$translatableClass])
+                    && $translatableTranslationPairs[$translatableClass] === $translationClass;
             }
         );
 

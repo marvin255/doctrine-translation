@@ -20,6 +20,43 @@ use Marvin255\DoctrineTranslationBundle\Tests\Mock\MockTranslatableItemTranslati
 class ClassNameManagerTest extends BaseCase
 {
     /**
+     * @dataProvider provideAreItemsClassesRelated
+     */
+    public function testAreItemsClassesRelated(mixed $translatable, mixed $translation, bool $reference): void
+    {
+        $manager = new ClassNameManager();
+        $result = $manager->areItemsClassesRelated($translatable, $translation);
+
+        $this->assertSame($reference, $result);
+    }
+
+    public function provideAreItemsClassesRelated(): array
+    {
+        return [
+            'releated items' => [
+                new MockTranslatableItem(),
+                new MockTranslatableItemTranslation(),
+                true,
+            ],
+            'unreleated items' => [
+                new MockTranslatableItem(),
+                new MockNoPairTranslation(),
+                false,
+            ],
+            'not an object translatable' => [
+                'test',
+                new MockTranslatableItemTranslation(),
+                false,
+            ],
+            'not an object translation' => [
+                new MockTranslatableItem(),
+                'test',
+                false,
+            ],
+        ];
+    }
+
+    /**
      * @dataProvider provideIsTranslationEntity
      */
     public function testIsTranslationEntity(object|string $entity, bool $reference): void

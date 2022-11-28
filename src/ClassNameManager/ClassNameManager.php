@@ -16,6 +16,20 @@ class ClassNameManager
     private const TRANSLATION_CLASS_SUFFIX = 'Translation';
 
     /**
+     * Check that class of the translation object is related to the class of the translatable object.
+     */
+    public function areItemsClassesRelated(mixed $translatable, mixed $translation): bool
+    {
+        if (!$this->isTranslatableEntity($translatable) || !$this->isTranslationEntity($translation)) {
+            return false;
+        }
+
+        $relatedClass = $this->getTranslationClassForTranslatableEntity($translatable);
+
+        return is_a($translation, $relatedClass);
+    }
+
+    /**
      * Check if set object is a translation item.
      *
      * @psalm-assert-if-true Translation $entity

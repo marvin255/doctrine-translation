@@ -113,6 +113,9 @@ jobs:
       - name: Check that translation repository is registered
         run: |
           $SYMFONY_FOLDER/bin/console debug:container "Marvin255\\DoctrineTranslationBundle\\Repository\\TranslationRepository"
+      - name: Check that translatable state handler is registered
+        run: |
+          $SYMFONY_FOLDER/bin/console debug:container "Marvin255\\DoctrineTranslationBundle\\StateHandler\\TranslatableStateHandler"
       - name: Check that locale normalizer is registered
         run: |
           $SYMFONY_FOLDER/bin/console debug:container "Marvin255\\DoctrineTranslationBundle\\Locale\\LocaleNormalizer"
