@@ -9,8 +9,7 @@ use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
 use Marvin255\DoctrineTranslationBundle\EntityManager\EntityManagerProvider;
 use Marvin255\DoctrineTranslationBundle\Locale\Locale;
-use Marvin255\DoctrineTranslationBundle\Locale\LocaleFactory;
-use Symfony\Contracts\Translation\LocaleAwareInterface;
+use Marvin255\DoctrineTranslationBundle\Locale\LocaleProvider;
 
 /**
  * Repository that can query translations for items.
@@ -21,22 +20,18 @@ class TranslationRepository
 
     private readonly EntityManagerProvider $em;
 
-    private readonly LocaleAwareInterface $localeSwitcher;
+    private readonly LocaleProvider $localeProvider;
 
     private readonly ClassNameManager $classNameManager;
 
-    private readonly ?Locale $defaultLocale;
-
     public function __construct(
         EntityManagerProvider $em,
-        LocaleAwareInterface $localeSwitcher,
-        ClassNameManager $classNameManager,
-        ?string $defaultLocale = null
+        LocaleProvider $localeProvider,
+        ClassNameManager $classNameManager
     ) {
         $this->em = $em;
-        $this->localeSwitcher = $localeSwitcher;
+        $this->localeProvider = $localeProvider;
         $this->classNameManager = $classNameManager;
-        $this->defaultLocale = !empty($defaultLocale) ? LocaleFactory::create($defaultLocale) : null;
     }
 
     /**
@@ -190,13 +185,5 @@ class TranslationRepository
         }
 
         return $localesStrings;
-    }
-
-    /**
-     * Returns current locale object.
-     */
-    private function getCurrentLocale(): Locale
-    {
-        return LocaleFactory::create($this->localeSwitcher->getLocale());
     }
 }

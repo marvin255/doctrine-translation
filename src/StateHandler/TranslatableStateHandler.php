@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace Marvin255\DoctrineTranslationBundle\StateHandler;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
+use Marvin255\DoctrineTranslationBundle\EntityManager\EntityManagerProvider;
 
 /**
  * Handler object that can persist translation to the storage.
  */
 class TranslatableStateHandler
 {
-    private readonly EntityManagerInterface $em;
+    private readonly EntityManagerProvider $em;
 
     private readonly ClassNameManager $classNameManager;
 
     public function __construct(
-        EntityManagerInterface $em,
+        EntityManagerProvider $em,
         ClassNameManager $classNameManager
     ) {
         $this->em = $em;
