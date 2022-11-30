@@ -3,7 +3,6 @@ services:
   Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager: ~
 
   Marvin255\DoctrineTranslationBundle\Locale\LocaleProvider:
-    class: Marvin255\DoctrineTranslationBundle\Locale\LocaleProvider
     arguments:
       - '@translation.locale_switcher'
       - '%kernel.default_locale%'
