@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace Marvin255\DoctrineTranslationBundle\Tests\Repository;
 
+use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
-use Marvin255\DoctrineTranslationBundle\Repository\EntityComparator;
 use Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository;
 use Marvin255\DoctrineTranslationBundle\Tests\EmCase;
-use PHPUnit\Framework\MockObject\MockObject;
-use Symfony\Contracts\Translation\LocaleAwareInterface;
 
 /**
  * @internal
@@ -23,7 +21,7 @@ class TranslationRepositoryTest extends EmCase
     {
         $translationParent = $this->createTranslatableMock();
         $translation = $this->createTranslationMock($translationParent);
-        $translatable = $this->createTranslatableMock($translation);
+        $translatable = $this->createTranslatableMockWithSetTranslated($translation);
 
         $qb = $this->createQueryBuilderMock(
             [
@@ -39,12 +37,12 @@ class TranslationRepositoryTest extends EmCase
             [$translation]
         );
 
-        $em = $this->createEmMock([], $qb);
-        $localeSwitcher = $this->createLocaleSwitcherMock();
-        $classNameManager = $this->createBasicClassNameManagerMock($translatable, $translation);
         $comparator = $this->createEntityComparatorMock($translationParent, $translatable);
+        $em = $this->getEntityManagerProviderMockQueryBuilder($qb, $comparator);
+        $localeProvider = $this->createLocaleProviderMock();
+        $classNameManager = $this->createBasicClassNameManagerMock($translatable, $translation);
 
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager, $comparator);
+        $repo = new TranslationRepository($em, $localeProvider, $classNameManager);
         $repo->findAndSetTranslationForCurrentLocale($translatable);
     }
 
@@ -59,11 +57,11 @@ class TranslationRepositoryTest extends EmCase
         $translationParent = $this->createTranslatableMock();
         $translationDefault = $this->createTranslationMock($translationParent, $defaultLocale);
         $translation = $this->createTranslationMock($translationParent, $locale);
-        $translatable = $this->createTranslatableMock($translation);
+        $translatable = $this->createTranslatableMockWithSetTranslated($translation);
 
         $translationParentFallback = $this->createTranslatableMock();
         $translationFallback = $this->createTranslationMock($translationParentFallback, $defaultLocale);
-        $translatableFallback = $this->createTranslatableMock($translationFallback);
+        $translatableFallback = $this->createTranslatableMockWithSetTranslated($translationFallback);
 
         $qb = $this->createQueryBuilderMock(
             [
@@ -79,21 +77,20 @@ class TranslationRepositoryTest extends EmCase
             [$translationDefault, $translation, $translationFallback]
         );
 
-        $em = $this->createEmMock([], $qb);
-        $localeSwitcher = $this->createLocaleSwitcherMock($localeStr);
-        $classNameManager = $this->createBasicClassNameManagerMock($translatable, $translation);
+        $comparator = $this->createEntityComparatorMock([
+            [$translationParent, $translatable],
+            [$translationParentFallback, $translatableFallback],
+        ]);
+        $em = $this->getEntityManagerProviderMockQueryBuilder($qb, $comparator);
+        $localeProvider = $this->createLocaleProviderMock($localeStr, $defaultLocaleStr);
         $classNameManager = $this->createClassNameManagerMock(
             self::BASE_CLASS_NAMES_MAP,
             [
                 self::BASE_TRANSLATABLE_CLASS => [$translatable, $translatableFallback],
             ]
         );
-        $comparator = $this->createEntityComparatorMock([
-            [$translationParent, $translatable],
-            [$translationParentFallback, $translatableFallback],
-        ]);
 
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager, $comparator, $defaultLocaleStr);
+        $repo = new TranslationRepository($em, $localeProvider, $classNameManager);
         $repo->findAndSetTranslationForCurrentLocale([$translatable, $translatableFallback]);
     }
 
@@ -121,8 +118,8 @@ class TranslationRepositoryTest extends EmCase
             $reference
         );
 
-        $em = $this->createEmMock([], $qb);
-        $localeSwitcher = $this->createLocaleSwitcherMock();
+        $em = $this->getEntityManagerProviderMockQueryBuilder($qb);
+        $localeProvider = $this->createLocaleProviderMock();
         $classNameManager = $this->createClassNameManagerMock(
             self::BASE_CLASS_NAMES_MAP,
             [
@@ -130,7 +127,7 @@ class TranslationRepositoryTest extends EmCase
             ]
         );
 
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
+        $repo = new TranslationRepository($em, $localeProvider, $classNameManager);
         $res = $repo->findTranslationForCurrentLocale($translatables);
 
         $this->assertSame($reference, $res);
@@ -140,7 +137,7 @@ class TranslationRepositoryTest extends EmCase
     {
         $translationParent = $this->createTranslatableMock();
         $translation = $this->createTranslationMock($translationParent);
-        $translatable = $this->createTranslatableMock($translation);
+        $translatable = $this->createTranslatableMockWithSetTranslated($translation);
         $locale = $this->createLocaleMock();
 
         $qb = $this->createQueryBuilderMock(
@@ -157,12 +154,12 @@ class TranslationRepositoryTest extends EmCase
             [$translation]
         );
 
-        $em = $this->createEmMock([], $qb);
-        $localeSwitcher = $this->createLocaleSwitcherMock();
-        $classNameManager = $this->createBasicClassNameManagerMock($translatable, $translation);
         $comparator = $this->createEntityComparatorMock($translationParent, $translatable);
+        $em = $this->getEntityManagerProviderMockQueryBuilder($qb, $comparator);
+        $localeProvider = $this->createLocaleProviderMock();
+        $classNameManager = $this->createBasicClassNameManagerMock($translatable, $translation);
 
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager, $comparator);
+        $repo = new TranslationRepository($em, $localeProvider, $classNameManager);
         $repo->findAndSetTranslationForLocale($translatable, $locale);
     }
 
@@ -212,8 +209,13 @@ class TranslationRepositoryTest extends EmCase
             [$reference[1]]
         );
 
-        $em = $this->createEmMock([], [$qb, $qb1]);
-        $localeSwitcher = $this->createLocaleSwitcherMock();
+        $em = $this->getEntityManagerProviderMockQueryBuilder(
+            [
+                $translationClass => $qb,
+                $translationClass1 => $qb1,
+            ]
+        );
+        $localeProvider = $this->createLocaleProviderMock();
         $classNameManager = $this->createClassNameManagerMock(
             [
                 'translatable' => $translationClass,
@@ -225,7 +227,7 @@ class TranslationRepositoryTest extends EmCase
             ]
         );
 
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
+        $repo = new TranslationRepository($em, $localeProvider, $classNameManager);
         $res = $repo->findTranslations(
             [
                 $translatable,
@@ -261,11 +263,11 @@ class TranslationRepositoryTest extends EmCase
             $reference
         );
 
-        $em = $this->createEmMock([], $qb);
-        $localeSwitcher = $this->createLocaleSwitcherMock();
+        $em = $this->getEntityManagerProviderMockQueryBuilder($qb);
+        $localeProvider = $this->createLocaleProviderMock();
         $classNameManager = $this->createBasicClassNameManagerMock($translatable);
 
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
+        $repo = new TranslationRepository($em, $localeProvider, $classNameManager);
         $res = $repo->findTranslations([$translatable]);
 
         $this->assertSame($reference, $res);
@@ -291,11 +293,11 @@ class TranslationRepositoryTest extends EmCase
             $reference
         );
 
-        $em = $this->createEmMock([], $qb);
-        $localeSwitcher = $this->createLocaleSwitcherMock();
+        $em = $this->getEntityManagerProviderMockQueryBuilder($qb);
+        $localeProvider = $this->createLocaleProviderMock();
         $classNameManager = $this->createBasicClassNameManagerMock($translatable);
 
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
+        $repo = new TranslationRepository($em, $localeProvider, $classNameManager);
         $res = $repo->findTranslations($translatable);
 
         $this->assertSame($reference, $res);
@@ -303,11 +305,11 @@ class TranslationRepositoryTest extends EmCase
 
     public function testFindTranslationsEmptyTranslatableList(): void
     {
-        $em = $this->createEmMock();
-        $localeSwitcher = $this->createLocaleSwitcherMock();
+        $em = $this->getEntityManagerProviderMockQueryBuilder();
+        $localeProvider = $this->createLocaleProviderMock();
         $classNameManager = $this->createClassNameManagerMock();
 
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager);
+        $repo = new TranslationRepository($em, $localeProvider, $classNameManager);
         $res = $repo->findTranslations([]);
 
         $this->assertSame([], $res);
@@ -321,22 +323,22 @@ class TranslationRepositoryTest extends EmCase
         $translationEqualParentSecond = $this->createTranslatableMock();
         $translationEqualSecond = $this->createTranslationMock($translationEqualParentSecond);
 
-        $translatableEqual = $this->createTranslatableMock($translationEqual);
+        $translatableEqual = $this->createTranslatableMockWithSetTranslated($translationEqual);
 
         $translationNonEqual = $this->createTranslationMock();
-        $translatableNonEqual = $this->createTranslatableMock(null);
+        $translatableNonEqual = $this->createTranslatableMockWithSetTranslated(null);
 
-        $em = $this->createEmMock();
-        $localeSwitcher = $this->createLocaleSwitcherMock();
-        $classNameManager = $this->createClassNameManagerMock();
         $comparator = $this->createEntityComparatorMock(
             [
                 [$translationEqualParent, $translatableEqual],
                 [$translationEqualParentSecond, $translatableEqual],
             ]
         );
+        $em = $this->getEntityManagerProviderMockComparator($comparator);
+        $localeProvider = $this->createLocaleProviderMock();
+        $classNameManager = $this->createClassNameManagerMock();
 
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager, $comparator);
+        $repo = new TranslationRepository($em, $localeProvider, $classNameManager);
         $repo->setItemsTranslated(
             [
                 $translatableEqual,
@@ -362,20 +364,20 @@ class TranslationRepositoryTest extends EmCase
         $fallbackLocaleParent = $this->createTranslatableMock();
         $fallbackLocaleTranslation = $this->createTranslationMock($fallbackLocaleParent, $fallbackLocale);
 
-        $translatableLocale = $this->createTranslatableMock($realLocaleTranslation);
-        $translatableFallbackLocale = $this->createTranslatableMock($fallbackLocaleTranslation);
+        $translatableLocale = $this->createTranslatableMockWithSetTranslated($realLocaleTranslation);
+        $translatableFallbackLocale = $this->createTranslatableMockWithSetTranslated($fallbackLocaleTranslation);
 
-        $em = $this->createEmMock();
-        $localeSwitcher = $this->createLocaleSwitcherMock();
-        $classNameManager = $this->createClassNameManagerMock();
         $comparator = $this->createEntityComparatorMock(
             [
                 [$realLocaleParent, $translatableLocale],
                 [$fallbackLocaleParent, $translatableFallbackLocale],
             ]
         );
+        $em = $this->getEntityManagerProviderMockComparator($comparator);
+        $localeProvider = $this->createLocaleProviderMock();
+        $classNameManager = $this->createClassNameManagerMock();
 
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager, $comparator);
+        $repo = new TranslationRepository($em, $localeProvider, $classNameManager);
         $repo->setItemsTranslated(
             [
                 $translatableLocale,
@@ -394,52 +396,30 @@ class TranslationRepositoryTest extends EmCase
     {
         $translationParent = $this->createTranslatableMock();
         $translation = $this->createTranslationMock($translationParent);
-        $translatable = $this->createTranslatableMock($translation);
+        $translatable = $this->createTranslatableMockWithSetTranslated($translation);
 
-        $em = $this->createEmMock();
-        $localeSwitcher = $this->createLocaleSwitcherMock();
-        $classNameManager = $this->createClassNameManagerMock();
         $comparator = $this->createEntityComparatorMock($translationParent, $translatable);
+        $em = $this->getEntityManagerProviderMockComparator($comparator);
+        $localeProvider = $this->createLocaleProviderMock();
+        $classNameManager = $this->createClassNameManagerMock();
 
-        $repo = new TranslationRepository($em, $localeSwitcher, $classNameManager, $comparator);
+        $repo = new TranslationRepository($em, $localeProvider, $classNameManager);
         $repo->setItemsTranslated($translatable, $translation);
     }
 
-    private function createLocaleSwitcherMock(string $locale = self::BASE_LOCALE): LocaleAwareInterface
+    private function createTranslatableMockWithSetTranslated(Translation|false|null $translated = false): Translatable
     {
-        /** @var LocaleAwareInterface&MockObject */
-        $localeSwitcher = $this->getMockBuilder(LocaleAwareInterface::class)->getMock();
+        $translatable = $this->createTranslatableMock();
 
-        $localeSwitcher->method('getLocale')->willReturn($locale);
+        if ($translated === false) {
+            $translatable->expects($this->never())->method('setTranslated');
+        } else {
+            $translatable->expects($this->once())
+                ->method('setTranslated')
+                ->with($this->identicalTo($translated))
+                ->willReturnSelf();
+        }
 
-        return $localeSwitcher;
-    }
-
-    /**
-     * @param array<array<object>>|object $param1
-     * @param ?object                     $param2
-     */
-    private function createEntityComparatorMock(array|object $param1 = [], ?object $param2 = null): EntityComparator
-    {
-        $equalityMap = \is_array($param1) ? $param1 : [[$param1, $param2]];
-
-        /** @var EntityComparator&MockObject */
-        $comparator = $this->getMockBuilder(EntityComparator::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $comparator->method('isEqual')->willReturnCallback(
-            function (mixed $a, mixed $b) use ($equalityMap): bool {
-                foreach ($equalityMap as $mapItem) {
-                    if (\in_array($a, $mapItem, true) && \in_array($b, $mapItem, true)) {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-        );
-
-        return $comparator;
+        return $translatable;
     }
 }

@@ -32,7 +32,7 @@ class EntityManagerProviderTest extends EmCase
     {
         $className = \stdClass::class;
         $entity = new \stdClass();
-        $meta = $this->getClassMetadataMock();
+        $meta = $this->createClassMetadataMock();
         $em = $this->getEntityManagerMock();
         $em->expects($this->once())
             ->method('getClassMetadata')
@@ -49,7 +49,7 @@ class EntityManagerProviderTest extends EmCase
     public function testGetClassMetadata(): void
     {
         $className = EntityManagerProvider::class;
-        $meta = $this->getClassMetadataMock();
+        $meta = $this->createClassMetadataMock();
         $em = $this->getEntityManagerMock();
         $em->expects($this->once())
             ->method('getClassMetadata')
@@ -66,7 +66,7 @@ class EntityManagerProviderTest extends EmCase
     public function testCreateQueryBuilder(): void
     {
         $className = EntityManagerProvider::class;
-        $qb = $this->getQueryBuilderMock();
+        $qb = $this->createQueryBuilderMock();
         $em = $this->getEntityManagerMock();
         $em->expects($this->once())
             ->method('createQueryBuilder')

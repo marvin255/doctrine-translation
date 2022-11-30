@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use Marvin255\DoctrineTranslationBundle\EntityManager\EntityComparator;
 use Marvin255\DoctrineTranslationBundle\EntityManager\EntityManagerProvider;
 use Marvin255\DoctrineTranslationBundle\Tests\EmCase;
+use PHPUnit\Framework\MockObject\MockObject;
 
 /**
  * @internal
@@ -64,7 +65,7 @@ class EntityComparatorTest extends EmCase
                 true,
                 $this->getEntityManagerProviderMockMeta(
                     \stdClass::class,
-                    $this->getClassMetadataMockIdentifiers([$a, 1, 2], [$b, 1, 2])
+                    $this->createClassMetadataMockIdentifiers([$a, 1, 2], [$b, 1, 2])
                 ),
             ],
             "don't equal by id" => [
@@ -73,7 +74,7 @@ class EntityComparatorTest extends EmCase
                 false,
                 $this->getEntityManagerProviderMockMeta(
                     \stdClass::class,
-                    $this->getClassMetadataMockIdentifiers([$a, 1, 1], [$b, 2, 2])
+                    $this->createClassMetadataMockIdentifiers([$a, 1, 1], [$b, 2, 2])
                 ),
             ],
         ];
@@ -84,9 +85,9 @@ class EntityComparatorTest extends EmCase
      *
      * @return ClassMetadata&MockObject
      */
-    private function getClassMetadataMockIdentifiers(...$identifiers): ClassMetadata
+    private function createClassMetadataMockIdentifiers(...$identifiers): ClassMetadata
     {
-        $meta = $this->getClassMetadataMock();
+        $meta = $this->createClassMetadataMock();
 
         $meta->method('getIdentifierValues')->willReturnCallback(
             function (object $toCheck) use ($identifiers): array {

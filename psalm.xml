@@ -10,6 +10,8 @@
         <directory name="./tests" />
         <ignoreFiles>
             <file name="./src/Marvin255DoctrineTranslationBundle.php" />
+            <file name="./tests/StateHandler/TranslatableStateHandlerTest.php" />
+            <file name="./src/StateHandler/TranslatableStateHandler.php" />
         </ignoreFiles>
     </projectFiles>
 

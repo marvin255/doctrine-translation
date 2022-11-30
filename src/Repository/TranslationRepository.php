@@ -42,14 +42,14 @@ class TranslationRepository
      */
     public function findAndSetTranslationForCurrentLocale(iterable|Translatable $items): void
     {
-        $locales = [$this->getCurrentLocale()];
-        if ($this->defaultLocale) {
-            $locales[] = $this->defaultLocale;
-        }
+        $locales = [
+            $this->localeProvider->getCurrentLocale(),
+            $this->localeProvider->getDefaultLocale(),
+        ];
 
         $translations = $this->findTranslations($items, $locales);
 
-        $this->setItemsTranslated($items, $translations, $this->defaultLocale);
+        $this->setItemsTranslated($items, $translations, $this->localeProvider->getDefaultLocale());
     }
 
     /**
@@ -61,7 +61,7 @@ class TranslationRepository
      */
     public function findTranslationForCurrentLocale(iterable|Translatable $items): iterable
     {
-        return $this->findTranslations($items, $this->getCurrentLocale());
+        return $this->findTranslations($items, $this->localeProvider->getCurrentLocale());
     }
 
     /**
@@ -151,6 +151,8 @@ class TranslationRepository
      * @param iterable<Translatable>|Translatable $items
      *
      * @return array<string, Translatable[]>
+     *
+     * @psalm-return array<class-string, Translatable[]>
      */
     private function groupItemsByTranslationClass(iterable|Translatable $items): array
     {
@@ -178,12 +180,9 @@ class TranslationRepository
 
         $localesStrings = [];
         foreach ($locales as $locale) {
-            $localeString = $locale->getFull();
-            if (!\in_array($localeString, $localesStrings)) {
-                $localesStrings[] = $localeString;
-            }
+            $localesStrings[] = $locale->getFull();
         }
 
-        return $localesStrings;
+        return array_unique($localesStrings);
     }
 }

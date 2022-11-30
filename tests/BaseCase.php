@@ -8,6 +8,7 @@ use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
 use Marvin255\DoctrineTranslationBundle\Locale\Locale;
+use Marvin255\DoctrineTranslationBundle\Locale\LocaleProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -23,25 +24,14 @@ abstract class BaseCase extends TestCase
     public const BASE_CLASS_NAMES_MAP = [self::BASE_TRANSLATABLE_CLASS => self::BASE_TRANSLATION_CLASS];
 
     /**
-     * @psalm-param class-string $class
-     *
      * @return Translatable&MockObject
      */
-    protected function createTranslatableMock(mixed $translated = false): Translatable
+    protected function createTranslatableMock(): Translatable
     {
         /** @var Translatable&MockObject */
         $translatable = $this->getMockBuilder(Translatable::class)
             ->disableOriginalConstructor()
             ->getMock();
-
-        if (!\is_bool($translated)) {
-            $translatable->expects($this->once())
-                ->method('setTranslated')
-                ->with($this->identicalTo($translated))
-                ->willReturnSelf();
-        } else {
-            $translatable->expects($this->never())->method('setTranslated');
-        }
 
         return $translatable;
     }
@@ -89,6 +79,19 @@ abstract class BaseCase extends TestCase
         }
 
         return $this->createClassNameManagerMock(self::BASE_CLASS_NAMES_MAP, $emtityClassMap);
+    }
+
+    protected function createLocaleProviderMock(string $current = self::BASE_LOCALE, string $default = self::BASE_LOCALE): LocaleProvider
+    {
+        /** @var LocaleProvider&MockObject */
+        $localeProvider = $this->getMockBuilder(LocaleProvider::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $localeProvider->method('getCurrentLocale')->willReturn($this->createLocaleMock($current));
+        $localeProvider->method('getDefaultLocale')->willReturn($this->createLocaleMock($default));
+
+        return $localeProvider;
     }
 
     /**
