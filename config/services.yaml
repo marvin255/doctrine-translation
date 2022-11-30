@@ -8,7 +8,6 @@ services:
       - '%kernel.default_locale%'
 
   Marvin255\DoctrineTranslationBundle\EntityManager\EntityManagerProvider:
-    class: Marvin255\DoctrineTranslationBundle\EntityManager\EntityManagerProvider
     arguments:
       - '@doctrine'
 
@@ -19,29 +18,24 @@ services:
   Marvin255\DoctrineTranslationBundle\StateHandler\TranslatableStateHandler: ~
 
   Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslatableMetaDataEventSubscriber:
-    class: Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslatableMetaDataEventSubscriber
     arguments:
       - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
     tags: ['doctrine.event_subscriber']
 
   Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslationMetaDataEventSubscriber:
-    class: Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslationMetaDataEventSubscriber
     arguments:
       - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
     tags: ['doctrine.event_subscriber']
 
   Marvin255\DoctrineTranslationBundle\Locale\LocaleNormalizer:
-    class: Marvin255\DoctrineTranslationBundle\Locale\LocaleNormalizer
     tags: ['serializer.normalizer', 'serializer.denormalizer']
 
   Marvin255\DoctrineTranslationBundle\TypeExtractor\TranslatableTypeExtractor:
-    class: Marvin255\DoctrineTranslationBundle\TypeExtractor\TranslatableTypeExtractor
     arguments:
       - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
     tags: ['property_info.type_extractor']
 
   Marvin255\DoctrineTranslationBundle\TypeExtractor\TranslationTypeExtractor:
-    class: Marvin255\DoctrineTranslationBundle\TypeExtractor\TranslationTypeExtractor
     arguments:
       - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
     tags: ['property_info.type_extractor']
