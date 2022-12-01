@@ -1,41 +1,71 @@
 services:
 
-  Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager: ~
+  marvin255_doctrine_translation_bundle.class_name_manager:
+    class: Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager
 
-  Marvin255\DoctrineTranslationBundle\Locale\LocaleProvider:
+  Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager:
+    alias: marvin255_doctrine_translation_bundle.class_name_manager
+
+  marvin255_doctrine_translation_bundle.locale_provider:
+    class: Marvin255\DoctrineTranslationBundle\Locale\LocaleProvider
     arguments:
       - '@translation.locale_switcher'
       - '%kernel.default_locale%'
 
-  Marvin255\DoctrineTranslationBundle\EntityManager\EntityManagerProvider:
+  marvin255_doctrine_translation_bundle.entity_manager_provider:
+    class: Marvin255\DoctrineTranslationBundle\EntityManager\EntityManagerProvider
     arguments:
       - '@doctrine'
 
-  Marvin255\DoctrineTranslationBundle\Repository\EntityComparator: ~
-
-  Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository: ~
-
-  Marvin255\DoctrineTranslationBundle\StateHandler\TranslatableStateHandler: ~
-
-  Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslatableMetaDataEventSubscriber:
+  marvin255_doctrine_translation_bundle.translation_repository:
+    class: Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository
     arguments:
-      - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
-    tags: ['doctrine.event_subscriber']
+      - '@marvin255_doctrine_translation_bundle.entity_manager_provider'
+      - '@marvin255_doctrine_translation_bundle.locale_provider'
+      - '@marvin255_doctrine_translation_bundle.class_name_manager'
 
-  Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslationMetaDataEventSubscriber:
+  Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository:
+    alias: marvin255_doctrine_translation_bundle.translation_repository
+
+  marvin255_doctrine_translation_bundle.translatable_state_handler:
+    class: Marvin255\DoctrineTranslationBundle\StateHandler\TranslatableStateHandler
     arguments:
-      - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
-    tags: ['doctrine.event_subscriber']
+      - '@marvin255_doctrine_translation_bundle.entity_manager_provider'
+      - '@marvin255_doctrine_translation_bundle.class_name_manager'
 
-  Marvin255\DoctrineTranslationBundle\Locale\LocaleNormalizer:
-    tags: ['serializer.normalizer', 'serializer.denormalizer']
+  Marvin255\DoctrineTranslationBundle\StateHandler\TranslatableStateHandler:
+    alias: marvin255_doctrine_translation_bundle.translatable_state_handler
 
-  Marvin255\DoctrineTranslationBundle\TypeExtractor\TranslatableTypeExtractor:
+  marvin255_doctrine_translation_bundle.translatable_meta_event_subscriber:
+    class: Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslatableMetaDataEventSubscriber
     arguments:
-      - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
-    tags: ['property_info.type_extractor']
+      - '@marvin255_doctrine_translation_bundle.class_name_manager'
+    tags:
+      - 'doctrine.event_subscriber'
 
-  Marvin255\DoctrineTranslationBundle\TypeExtractor\TranslationTypeExtractor:
+  marvin255_doctrine_translation_bundle.translation_meta_event_subscriber:
+    class: Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslationMetaDataEventSubscriber
     arguments:
-      - '@Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager'
-    tags: ['property_info.type_extractor']
+      - '@marvin255_doctrine_translation_bundle.class_name_manager'
+    tags:
+      - 'doctrine.event_subscriber'
+
+  marvin255_doctrine_translation_bundle.locale_normalizer:
+    class: Marvin255\DoctrineTranslationBundle\Locale\LocaleNormalizer
+    tags:
+      - 'serializer.normalizer'
+      - 'serializer.denormalizer'
+
+  marvin255_doctrine_translation_bundle.translatable_type_extractor:
+    class: Marvin255\DoctrineTranslationBundle\TypeExtractor\TranslatableTypeExtractor
+    arguments:
+      - '@marvin255_doctrine_translation_bundle.class_name_manager'
+    tags: 
+      - 'property_info.type_extractor'
+
+  marvin255_doctrine_translation_bundle.translation_type_extractor:
+    class: Marvin255\DoctrineTranslationBundle\TypeExtractor\TranslationTypeExtractor
+    arguments:
+      - '@marvin255_doctrine_translation_bundle.class_name_manager'
+    tags: 
+      - 'property_info.type_extractor'
