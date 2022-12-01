@@ -3,6 +3,9 @@ services:
   marvin255_doctrine_translation_bundle.class_name_manager:
     class: Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager
 
+  Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager:
+    alias: marvin255_doctrine_translation_bundle.class_name_manager
+
   marvin255_doctrine_translation_bundle.locale_provider:
     class: Marvin255\DoctrineTranslationBundle\Locale\LocaleProvider
     arguments:
@@ -21,11 +24,17 @@ services:
       - '@marvin255_doctrine_translation_bundle.locale_provider'
       - '@marvin255_doctrine_translation_bundle.class_name_manager'
 
+  Marvin255\DoctrineTranslationBundle\Repository\TranslationRepository:
+    alias: marvin255_doctrine_translation_bundle.translation_repository
+
   marvin255_doctrine_translation_bundle.translatable_state_handler:
     class: Marvin255\DoctrineTranslationBundle\StateHandler\TranslatableStateHandler
     arguments:
       - '@marvin255_doctrine_translation_bundle.entity_manager_provider'
       - '@marvin255_doctrine_translation_bundle.class_name_manager'
+
+  Marvin255\DoctrineTranslationBundle\StateHandler\TranslatableStateHandler:
+    alias: marvin255_doctrine_translation_bundle.translatable_state_handler
 
   marvin255_doctrine_translation_bundle.translatable_meta_event_subscriber:
     class: Marvin255\DoctrineTranslationBundle\EventSubscriber\TranslatableMetaDataEventSubscriber
