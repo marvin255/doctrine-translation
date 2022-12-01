@@ -13,19 +13,6 @@ use Marvin255\DoctrineTranslationBundle\Tests\EmCase;
  */
 class TranslatableStateHandlerTest extends EmCase
 {
-    public function testReplaceTranslationsWrongTranslationObject(): void
-    {
-        $translatable = $this->createTranslatableMock();
-        $translation = $this->createTranslationMock();
-        $em = $this->createEmMock();
-        $classNameManager = $this->createClassNameManagerMock();
-
-        $handler = new TranslatableStateHandler($em, $classNameManager);
-
-        $this->expectException(\InvalidArgumentException::class);
-        $handler->replaceTranslations($translatable, [$translation]);
-    }
-
     public function testReplaceTranslationsAddNewTranslation(): void
     {
         $locale = $this->createLocaleMock();
@@ -42,16 +29,22 @@ class TranslatableStateHandlerTest extends EmCase
             ->with($this->identicalTo($translation))
             ->willReturnSelf();
 
-        $em = $this->createEmMock();
+        $em = $this->getEntityManagerMock();
         $em->expects($this->once())
             ->method('persist')
             ->with($this->identicalTo($translation));
         $em->expects($this->never())->method('remove');
         $em->expects($this->once())->method('flush');
 
+        $emProvider = $this->getEntityManagerProviderMock();
+        $emProvider->expects($this->once())
+            ->method('getEntityManagerForClass')
+            ->with($this->equalTo(self::BASE_TRANSLATION_CLASS))
+            ->willReturn($em);
+
         $classNameManager = $this->createBasicClassNameManagerMock($translatable, $translation);
 
-        $handler = new TranslatableStateHandler($em, $classNameManager);
+        $handler = new TranslatableStateHandler($emProvider, $classNameManager);
 
         $handler->replaceTranslations($translatable, [$translation]);
     }
@@ -69,16 +62,22 @@ class TranslatableStateHandlerTest extends EmCase
             ->with($this->identicalTo($translation))
             ->willReturnSelf();
 
-        $em = $this->createEmMock();
+        $em = $this->getEntityManagerMock();
         $em->expects($this->once())
             ->method('remove')
             ->with($this->identicalTo($translation));
         $em->expects($this->never())->method('persist');
         $em->expects($this->once())->method('flush');
 
-        $classNameManager = $this->createBasicClassNameManagerMock();
+        $emProvider = $this->getEntityManagerProviderMock();
+        $emProvider->expects($this->once())
+            ->method('getEntityManagerForClass')
+            ->with($this->equalTo(self::BASE_TRANSLATION_CLASS))
+            ->willReturn($em);
 
-        $handler = new TranslatableStateHandler($em, $classNameManager);
+        $classNameManager = $this->createBasicClassNameManagerMock($translatable, $translation);
+
+        $handler = new TranslatableStateHandler($emProvider, $classNameManager);
 
         $handler->replaceTranslations($translatable, []);
     }
@@ -95,7 +94,7 @@ class TranslatableStateHandlerTest extends EmCase
             ->with($this->identicalTo($locale))
             ->willReturn($existedTranslation);
 
-        $meta = $this->createMetaMock();
+        $meta = $this->createClassMetadataMock();
         $meta->expects($this->once())
             ->method('getFieldNames')
             ->willReturn([Translation::ID_COLUMN_NAME, 'test']);
@@ -114,14 +113,24 @@ class TranslatableStateHandlerTest extends EmCase
                 $this->identicalTo('value')
             );
 
-        $em = $this->createEmMock([\get_class($translation) => $meta]);
+        $em = $this->getEntityManagerMock();
         $em->expects($this->never())->method('remove');
         $em->expects($this->never())->method('persist');
         $em->expects($this->once())->method('flush');
 
+        $emProvider = $this->getEntityManagerProviderMock();
+        $emProvider->expects($this->once())
+            ->method('getClassMetadataForEntity')
+            ->with($this->identicalTo($translation))
+            ->willReturn($meta);
+        $emProvider->expects($this->once())
+            ->method('getEntityManagerForClass')
+            ->with($this->equalTo(self::BASE_TRANSLATION_CLASS))
+            ->willReturn($em);
+
         $classNameManager = $this->createBasicClassNameManagerMock($translatable, $translation);
 
-        $handler = new TranslatableStateHandler($em, $classNameManager);
+        $handler = new TranslatableStateHandler($emProvider, $classNameManager);
 
         $handler->replaceTranslations($translatable, [$translation]);
     }

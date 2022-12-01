@@ -121,15 +121,4 @@ class EntityManagerProviderTest extends EmCase
 
         return $mr;
     }
-
-    /**
-     * @return EntityManagerInterface&MockObject
-     */
-    private function getEntityManagerMock(): EntityManagerInterface
-    {
-        /** @var EntityManagerInterface&MockObject */
-        $em = $this->getMockBuilder(EntityManagerInterface::class)->disableOriginalConstructor()->getMock();
-
-        return $em;
-    }
 }

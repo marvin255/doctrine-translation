@@ -14,15 +14,15 @@ use Marvin255\DoctrineTranslationBundle\EntityManager\EntityManagerProvider;
  */
 class TranslatableStateHandler
 {
-    private readonly EntityManagerProvider $em;
+    private readonly EntityManagerProvider $emProvider;
 
     private readonly ClassNameManager $classNameManager;
 
     public function __construct(
-        EntityManagerProvider $em,
+        EntityManagerProvider $emProvider,
         ClassNameManager $classNameManager
     ) {
-        $this->em = $em;
+        $this->emProvider = $emProvider;
         $this->classNameManager = $classNameManager;
     }
 
@@ -33,15 +33,15 @@ class TranslatableStateHandler
      */
     public function replaceTranslations(Translatable $translatable, iterable $translations): void
     {
+        $translationClass = $this->classNameManager->getTranslationClassForTranslatableEntity($translatable);
+        $em = $this->emProvider->getEntityManagerForClass($translationClass);
+
         $itemsToChange = [];
         foreach ($translations as $translation) {
-            if (!$this->classNameManager->areItemsClassesRelated($translatable, $translation)) {
-                throw new \InvalidArgumentException('Translation is unrelated to the translatable');
-            }
             $locale = $translation->getLocale();
             $relatedTranslation = $locale ? $translatable->findTranslationByLocale($locale) : null;
             if ($relatedTranslation === null) {
-                $this->em->persist($translation);
+                $em->persist($translation);
                 $translatable->addTranslation($translation);
                 $itemsToChange[] = $translation;
             } else {
@@ -52,12 +52,12 @@ class TranslatableStateHandler
 
         foreach ($translatable->getTranslations() as $translation) {
             if (!\in_array($translation, $itemsToChange, true)) {
-                $this->em->remove($translation);
+                $em->remove($translation);
                 $translatable->removeTranslation($translation);
             }
         }
 
-        $this->em->flush();
+        $em->flush();
     }
 
     /**
@@ -65,7 +65,7 @@ class TranslatableStateHandler
      */
     private function transferContentDataBetweenTranslations(Translation $from, Translation $to): void
     {
-        $meta = $this->em->getClassMetadata(\get_class($from));
+        $meta = $this->emProvider->getClassMetadataForEntity($from);
         $readonlyFields = [
             Translation::ID_COLUMN_NAME,
             Translation::LOCALE_FIELD_NAME,

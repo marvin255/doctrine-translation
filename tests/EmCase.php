@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Marvin255\DoctrineTranslationBundle\Tests;
 
 use Doctrine\ORM\AbstractQuery;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\QueryBuilder;
 use Marvin255\DoctrineTranslationBundle\EntityManager\EntityComparator;
@@ -76,6 +77,17 @@ abstract class EmCase extends BaseCase
         $provider = $this->getMockBuilder(EntityManagerProvider::class)->disableOriginalConstructor()->getMock();
 
         return $provider;
+    }
+
+    /**
+     * @return EntityManagerInterface&MockObject
+     */
+    protected function getEntityManagerMock(): EntityManagerInterface
+    {
+        /** @var EntityManagerInterface&MockObject */
+        $em = $this->getMockBuilder(EntityManagerInterface::class)->getMock();
+
+        return $em;
     }
 
     /**
