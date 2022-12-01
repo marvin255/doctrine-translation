@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Marvin255\DoctrineTranslationBundle\Repository;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Marvin255\DoctrineTranslationBundle\ClassNameManager\ClassNameManager;
 use Marvin255\DoctrineTranslationBundle\Entity\Translatable;
 use Marvin255\DoctrineTranslationBundle\Entity\Translation;
+use Marvin255\DoctrineTranslationBundle\EntityManager\EntityManagerProvider;
 use Marvin255\DoctrineTranslationBundle\Locale\Locale;
-use Marvin255\DoctrineTranslationBundle\Locale\LocaleFactory;
-use Symfony\Contracts\Translation\LocaleAwareInterface;
+use Marvin255\DoctrineTranslationBundle\Locale\LocaleProvider;
 
 /**
  * Repository that can query translations for items.
@@ -19,28 +18,20 @@ class TranslationRepository
 {
     public const QUERY_ALIAS = 't';
 
-    private readonly EntityManagerInterface $em;
+    private readonly EntityManagerProvider $em;
 
-    private readonly LocaleAwareInterface $localeSwitcher;
+    private readonly LocaleProvider $localeProvider;
 
     private readonly ClassNameManager $classNameManager;
 
-    private readonly EntityComparator $comparator;
-
-    private readonly ?Locale $defaultLocale;
-
     public function __construct(
-        EntityManagerInterface $em,
-        LocaleAwareInterface $localeSwitcher,
-        ClassNameManager $classNameManager,
-        ?EntityComparator $comparator = null,
-        ?string $defaultLocale = null
+        EntityManagerProvider $em,
+        LocaleProvider $localeProvider,
+        ClassNameManager $classNameManager
     ) {
         $this->em = $em;
-        $this->localeSwitcher = $localeSwitcher;
+        $this->localeProvider = $localeProvider;
         $this->classNameManager = $classNameManager;
-        $this->comparator = $comparator ?: new EntityComparator($em);
-        $this->defaultLocale = !empty($defaultLocale) ? LocaleFactory::create($defaultLocale) : null;
     }
 
     /**
@@ -51,14 +42,14 @@ class TranslationRepository
      */
     public function findAndSetTranslationForCurrentLocale(iterable|Translatable $items): void
     {
-        $locales = [$this->getCurrentLocale()];
-        if ($this->defaultLocale) {
-            $locales[] = $this->defaultLocale;
-        }
+        $locales = [
+            $this->localeProvider->getCurrentLocale(),
+            $this->localeProvider->getDefaultLocale(),
+        ];
 
         $translations = $this->findTranslations($items, $locales);
 
-        $this->setItemsTranslated($items, $translations, $this->defaultLocale);
+        $this->setItemsTranslated($items, $translations, $this->localeProvider->getDefaultLocale());
     }
 
     /**
@@ -70,7 +61,7 @@ class TranslationRepository
      */
     public function findTranslationForCurrentLocale(iterable|Translatable $items): iterable
     {
-        return $this->findTranslations($items, $this->getCurrentLocale());
+        return $this->findTranslations($items, $this->localeProvider->getCurrentLocale());
     }
 
     /**
@@ -108,7 +99,7 @@ class TranslationRepository
 
         $result = [];
         foreach ($itemsByClasses as $translationClass => $translatableItems) {
-            $qb = $this->em->createQueryBuilder();
+            $qb = $this->em->createQueryBuilder($translationClass);
             $qb->select(self::QUERY_ALIAS);
             $qb->from($translationClass, self::QUERY_ALIAS);
             $qb->where(self::QUERY_ALIAS . '.' . Translation::TRANSLATABLE_FIELD_NAME . ' IN (:translatables)');
@@ -141,7 +132,7 @@ class TranslationRepository
             $translated = null;
             $fallbackTranslated = null;
             foreach ($translations as $translation) {
-                if ($this->comparator->isEqual($item, $translation->getTranslatable())) {
+                if ($this->em->getEntityComparator()->isEqual($item, $translation->getTranslatable())) {
                     if ($translation->getLocale()?->equals($fallbackLocale) === true) {
                         $fallbackTranslated = $translation;
                     } else {
@@ -160,6 +151,8 @@ class TranslationRepository
      * @param iterable<Translatable>|Translatable $items
      *
      * @return array<string, Translatable[]>
+     *
+     * @psalm-return array<class-string, Translatable[]>
      */
     private function groupItemsByTranslationClass(iterable|Translatable $items): array
     {
@@ -187,20 +180,9 @@ class TranslationRepository
 
         $localesStrings = [];
         foreach ($locales as $locale) {
-            $localeString = $locale->getFull();
-            if (!\in_array($localeString, $localesStrings)) {
-                $localesStrings[] = $localeString;
-            }
+            $localesStrings[] = $locale->getFull();
         }
 
-        return $localesStrings;
-    }
-
-    /**
-     * Returns current locale object.
-     */
-    private function getCurrentLocale(): Locale
-    {
-        return LocaleFactory::create($this->localeSwitcher->getLocale());
+        return array_unique($localesStrings);
     }
 }

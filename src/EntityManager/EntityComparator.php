@@ -2,18 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Marvin255\DoctrineTranslationBundle\Repository;
-
-use Doctrine\ORM\EntityManagerInterface;
+namespace Marvin255\DoctrineTranslationBundle\EntityManager;
 
 /**
  * Compares two entites by strict comparision and identifiers equality.
  */
 class EntityComparator
 {
-    private readonly EntityManagerInterface $em;
+    private readonly EntityManagerProvider $em;
 
-    public function __construct(EntityManagerInterface $em)
+    public function __construct(EntityManagerProvider $em)
     {
         $this->em = $em;
     }
