@@ -8,6 +8,8 @@ use Marvin255\DoctrineTranslationBundle\Entity\Translation;
 
 /**
  * @internal
+ *
+ * @extends Translation<MockTranslatableItem>
  */
 class MockTranslatableItemTranslation extends Translation
 {
